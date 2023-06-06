@@ -1,6 +1,7 @@
+
 import java.util.List;
 import java.util.Scanner;
-
+// GIT
 public class UserInterface {
 	
 	
@@ -11,7 +12,7 @@ public class UserInterface {
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
 		this.org = org;
-	}
+	} 
 	
 	public void start() {
 				
@@ -30,8 +31,23 @@ public class UserInterface {
 				System.out.println("Enter the fund number to see more information.");
 			}
 			System.out.println("Enter 0 to create a new fund");
-			int option = in.nextInt();
-			in.nextLine();
+			int numFunds = org.getFunds().size();
+			int option;
+			while(true) {
+				try {
+					option = in.nextInt();
+					in.nextLine();
+					if(0 <= option && option <= numFunds) { // to check if input fund number is valid
+						break;
+					}
+					System.out.println("There are only " + numFunds + " funds in the organization. \n "
+							+ "So please enter a fund number between 1 and " + numFunds + " to see more information about the fund.");
+				}
+				catch(Exception e) {
+					in.next(); // to advance to the next token
+					System.out.println("Please enter a valid integer between 0 and " + numFunds);
+				}
+			}
 			if (option == 0) {
 				createFund(); 
 			}
@@ -49,11 +65,25 @@ public class UserInterface {
 		
 		System.out.print("Enter the fund description: ");
 		String description = in.nextLine().trim();
-		
-		System.out.print("Enter the fund target: ");
-		long target = in.nextInt();
-		in.nextLine();
 
+		long target;
+		while(true) {
+			try {
+				System.out.print("Enter the fund target: ");
+				target = in.nextInt();
+				in.nextLine();
+				if(target>0.0) { // not including 0 as a valid fund target. 
+					break;
+				}
+				System.out.println("Fund target should be positive (greater than 0). Please enter a positive number.");
+			}
+			catch (Exception e) {
+				in.next();
+				System.out.println("Please enter a valid positive (greater than 0) number.");
+			}
+			
+		}
+		
 		Fund fund = dataManager.createFund(org.getId(), name, description, target);
 		org.getFunds().add(fund);
 
@@ -93,19 +123,23 @@ public class UserInterface {
 		String login = args[0];
 		String password = args[1];
 		
-		
-		Organization org = ds.attemptLogin(login, password);
-		
-		if (org == null) {
-			System.out.println("Login failed.");
-		}
-		else {
+		try {
+			Organization org = ds.attemptLogin(login, password);
+			
+			if (org == null) {
+				System.out.println("Login failed. Incorrect username or password.");
+			}
+			else {
 
-			UserInterface ui = new UserInterface(ds, org);
-		
-			ui.start();
-		
+				UserInterface ui = new UserInterface(ds, org);
+			
+				ui.start();
+			
+			}
+		} catch (Exception e) {
+			System.out.println("Error in communicating with server.");
 		}
+		
 	}
 
 }

@@ -134,7 +134,7 @@ public class DataManager_attemptLogin_Test {
 		}
 
 	}
-
+	
 	@Test
 	public void testUnsuccessfullLogin() {
 		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
@@ -142,31 +142,28 @@ public class DataManager_attemptLogin_Test {
 			@Override
 			public String makeRequest(String resource, Map<String, Object> queryParams) {
 				JSONObject response = new JSONObject();
-				response.put("status", "failure");
-				
+				response.put("status", "login failed");
 				return response.toJSONString();
 			}
-			
-			
 		});
 		Organization org = dm.attemptLogin("username", "password");
 		
 		assertNull(org);
 	}
 
-	@Test 
+	@Test(expected=IllegalStateException.class) 
 	public void testErrorInLogin() {
 		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
 
 			@Override
 			public String makeRequest(String resource, Map<String, Object> queryParams) {
-				return null;
+				JSONObject response = new JSONObject();
+				response.put("status", "failure");
+				return response.toJSONString();
 			}
 			
 			
 		});
-		Organization org = dm.attemptLogin("username", "password");
-		
-		assertNull(org);
+		Organization org = dm.attemptLogin("username", "password"); 
 	}
 }
