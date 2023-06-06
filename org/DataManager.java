@@ -8,7 +8,7 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
+//GIT
 public class DataManager {
 
 	private final WebClient client;
@@ -32,14 +32,13 @@ public class DataManager {
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status");
-
-
+			String status = (String)json.get("status"); 
+			
 			if (status.equals("success")) {
 				JSONObject data = (JSONObject)json.get("data");
 				String fundId = (String)data.get("_id");
 				String name = (String)data.get("name");
-				String description = (String)data.get("descrption");
+				String description = (String)data.get("description"); 
 				Organization org = new Organization(fundId, name, description);
 
 				JSONArray funds = (JSONArray)data.get("funds");
@@ -73,11 +72,16 @@ public class DataManager {
 
 				return org;
 			}
-			else return null;
+			else if(status.equals("login failed")){
+				return null;
+			}
+			else {
+				throw new IllegalStateException("An error has occurred while communicating with the server.");
+			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			return null;
+//			e.printStackTrace(); // assuming we don't have to print this since we're displaying the error message in UserInterface.main 
+			throw new IllegalStateException("An error has occurred while communicating with the server.");
 		}
 	}
 
