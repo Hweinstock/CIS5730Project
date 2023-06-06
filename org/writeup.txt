@@ -1,5 +1,0 @@
-This document can be used for notes regarding the writeup.
-
-1.2: 
-Bugs Found:
-- Found typo DataManager.java:42 
