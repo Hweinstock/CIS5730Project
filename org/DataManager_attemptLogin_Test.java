@@ -136,7 +136,7 @@ public class DataManager_attemptLogin_Test {
 	}
 	
 	@Test
-	public void testUnsuccessfullLoginUpdated() {
+	public void testUnsuccessfullLogin() {
 		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
 
 			@Override
@@ -152,7 +152,7 @@ public class DataManager_attemptLogin_Test {
 	}
 
 	@Test(expected=IllegalStateException.class) 
-	public void testErrorInLoginUpdated() {
+	public void testErrorInLogin() {
 		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
 
 			@Override
