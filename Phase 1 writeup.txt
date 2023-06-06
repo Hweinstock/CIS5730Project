@@ -14,7 +14,7 @@ Group Members: Harry Weinstock, Ryan Trotter, Ankith Suhas Pinnamaneni
 
 3. and 4. Bugs Found:
   Task 1.2: 
-  - Found typo in DataManager.java:42. Changed 'dscription' to 'description'. 
+  - Found typo in DataManager.java:41. Changed 'descrption' to 'description'. 
 
 5. No changes were made to how the app is started
 
