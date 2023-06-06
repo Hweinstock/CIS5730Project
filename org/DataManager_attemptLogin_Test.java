@@ -1,4 +1,3 @@
-
 import java.util.Map;
 import static org.junit.Assert.*;
 import java.util.*;
@@ -135,25 +134,6 @@ public class DataManager_attemptLogin_Test {
 		}
 
 	}
-
-//	@Test
-//	public void testUnsuccessfullLogin() {
-//		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
-//
-//			@Override
-//			public String makeRequest(String resource, Map<String, Object> queryParams) {
-//				JSONObject response = new JSONObject();
-//				response.put("status", "failure");
-//				
-//				return response.toJSONString();
-//			}
-//			
-//			
-//		});
-//		Organization org = dm.attemptLogin("username", "password");
-//		
-//		assertNull(org);
-//	}
 	
 	@Test
 	public void testUnsuccessfullLoginUpdated() {
@@ -171,22 +151,6 @@ public class DataManager_attemptLogin_Test {
 		assertNull(org);
 	}
 
-//	@Test 
-//	public void testErrorInLogin() {
-//		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
-//
-//			@Override
-//			public String makeRequest(String resource, Map<String, Object> queryParams) {
-//				return null;
-//			}
-//			
-//			
-//		});
-//		Organization org = dm.attemptLogin("username", "password");
-//		
-//		assertNull(org);
-//	}
-	
 	@Test(expected=IllegalStateException.class) 
 	public void testErrorInLoginUpdated() {
 		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
