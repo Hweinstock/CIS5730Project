@@ -13,7 +13,7 @@ public class DataManager {
 
 	private final WebClient client;
 	// proctected so that we man manually test/inspect in tests. 
-	protected Map<String, String> contributorNameCache;
+	protected Map<String, String> contributorNameCache = new HashMap<String, String>();
 	public DataManager(WebClient client) {
 		this.client = client;
 	}

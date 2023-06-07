@@ -111,8 +111,8 @@ public class DataManager_getContributorName_Test {
 		String name = dm.getContributorName("testId");
 		Map<String, String> cache = dm.inspectCache();
 		
-		assertTrue(cache.containsKey(name));
-		assertTrue(cache.get(name) == "testName");
+		assertTrue(cache.containsKey("testId"));
+		assertTrue(cache.get("testId") == name);
 
 
 	}
