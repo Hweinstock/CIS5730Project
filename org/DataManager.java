@@ -12,7 +12,8 @@ import org.json.simple.parser.JSONParser;
 public class DataManager {
 
 	private final WebClient client;
-
+	// proctected so that we man manually test/inspect in tests. 
+	protected Map<String, String> contributorNameCache;
 	public DataManager(WebClient client) {
 		this.client = client;
 	}
@@ -91,7 +92,9 @@ public class DataManager {
 	 * @return the name of the contributor on success; null if no contributor is found
 	 */
 	public String getContributorName(String id) {
-
+		if(this.contributorNameCache.containsKey(id)){
+			return this.contributorNameCache.get(id);
+		}
 		try {
 
 			Map<String, Object> map = new HashMap<>();
@@ -104,6 +107,7 @@ public class DataManager {
 
 			if (status.equals("success")) {
 				String name = (String)json.get("data");
+				this.contributorNameCache.put(id, name);
 				return name;
 			}
 			else return null;
