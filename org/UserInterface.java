@@ -84,8 +84,14 @@ public class UserInterface {
 			
 		}
 		
-		Fund fund = dataManager.createFund(org.getId(), name, description, target);
-		org.getFunds().add(fund);
+		try {
+			Fund fund = dataManager.createFund(org.getId(), name, description, target);
+			org.getFunds().add(fund);
+		}
+		catch (Exception e) {
+			System.out.println(e.getMessage());
+			createFund();
+		}
 
 		
 	}
@@ -122,7 +128,6 @@ public class UserInterface {
 	
 	
 	public static void main(String[] args) {
-		
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
 		String login = args[0];
