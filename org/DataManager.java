@@ -18,12 +18,25 @@ public class DataManager {
 		this.client = client;
 	}
 
+	private String nullWebClientErrorMsg = "WebClient is null";
+	private String unableToParseRsp = "Unable to parse response from WebClient";
+	private String failedConnectionErrorMsg = "Unable to connect with WebClient";
+	private String webClientResponseErrorMsg = "Web Client responded with error";
+
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.
 	 * This method uses the /findOrgByLoginAndPassword endpoint in the API
 	 * @return an Organization object if successful; null if unsuccessful
 	 */
 	public Organization attemptLogin(String login, String password) {
+
+		if(login == null || password == null){
+			throw new IllegalArgumentException("Null Login or password attemped.");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
 
 		try {
 			Map<String, Object> map = new HashMap<>();
@@ -77,12 +90,12 @@ public class DataManager {
 				return null;
 			}
 			else {
-				throw new IllegalStateException("An error has occurred while communicating with the server.");
+				throw new IllegalStateException(failedConnectionErrorMsg);
 			}
 		}
 		catch (Exception e) {
 //			e.printStackTrace(); // assuming we don't have to print this since we're displaying the error message in UserInterface.main 
-			throw new IllegalStateException("An error has occurred while communicating with the server.");
+			throw new IllegalStateException(failedConnectionErrorMsg);
 		}
 	}
 
@@ -92,6 +105,15 @@ public class DataManager {
 	 * @return the name of the contributor on success; null if no contributor is found
 	 */
 	public String getContributorName(String id) {
+
+		if(id == null){
+			throw new IllegalArgumentException("Null id passed to getContributorName");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+
 		if(this.contributorNameCache.containsKey(id)){
 			return this.contributorNameCache.get(id);
 		}
@@ -101,6 +123,10 @@ public class DataManager {
 			map.put("id", id);
 			String response = client.makeRequest("/findContributorNameById", map);
 
+			if(response == null){
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
 			String status = (String)json.get("status");
@@ -109,13 +135,17 @@ public class DataManager {
 				String name = (String)json.get("data");
 				this.contributorNameCache.put(id, name);
 				return name;
+			} else if (status.equals("error")) {
+				throw new IllegalStateException(webClientResponseErrorMsg);
 			}
 			else return null;
 
-
+		}
+		catch (IllegalStateException e) {
+			throw e;
 		}
 		catch (Exception e) {
-			return null;
+			throw new IllegalStateException(unableToParseRsp);
 		}	
 	}
 
@@ -124,6 +154,15 @@ public class DataManager {
 	 * @return a new Fund object if successful; null if unsuccessful
 	 */
 	public Fund createFund(String orgId, String name, String description, long target) {
+
+		if(orgId == null || name == null || description == null)
+		{
+			throw new IllegalArgumentException("One of orgId, name, and description are null!");
+		}
+		
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
 
 		try {
 
@@ -142,13 +181,14 @@ public class DataManager {
 				JSONObject fund = (JSONObject)json.get("data");
 				String fundId = (String)fund.get("_id");
 				return new Fund(fundId, name, description, target);
+			} else if (status.equals("error")){
+				throw new IllegalStateException("webClientResponseErrorMsg");
 			}
 			else return null;
 
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			throw new IllegalStateException(unableToParseRsp);
 		}	
 	}
 
