@@ -1,6 +1,6 @@
 
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+
 // GIT
 public class UserInterface {
 	
@@ -29,6 +29,7 @@ public class UserInterface {
 					count++;
 				}
 				System.out.println("Enter the fund number to see more information.");
+				System.out.println("Enter " + count + " to see information for contributions to all funds.");
 			}
 			System.out.println("Enter 0 to create a new fund");
 			int numFunds = org.getFunds().size();
@@ -37,19 +38,22 @@ public class UserInterface {
 				try {
 					option = in.nextInt();
 					in.nextLine();
-					if(0 <= option && option <= numFunds) { // to check if input fund number is valid
+					if(0 <= option && option <= numFunds+1) { // to check if input fund number is valid
 						break;
 					}
 					System.out.println("There are only " + numFunds + " funds in the organization. \n "
-							+ "So please enter a fund number between 1 and " + numFunds + " to see more information about the fund.");
+							+ "So please enter a fund number between 1 and " + (numFunds+1) + " to see more information about the fund or all funds.");
 				}
 				catch(Exception e) {
 					in.next(); // to advance to the next token
-					System.out.println("Please enter a valid integer between 0 and " + numFunds);
+					System.out.println("Please enter a valid integer between 0 and " + (numFunds+1));
 				}
 			}
 			if (option == 0) {
 				createFund(); 
+			}
+			else if (option == numFunds+1) {
+				displayAllFunds();
 			}
 			else {
 				displayFund(option);
@@ -118,6 +122,28 @@ public class UserInterface {
 		
 		
 		
+	}
+
+	public void displayAllFunds() {
+		List<Fund> funds = org.getFunds();
+		List<Donation> donations = new LinkedList<>();
+		Map<String, String> fundMap = new HashMap<>();
+
+		for (Fund fund : funds) {
+			fundMap.put(fund.getId(), fund.getName());
+			donations.addAll(fund.getDonations());
+		}
+
+		Collections.sort(donations);
+
+		System.out.println("\n\n");
+		System.out.println("Here are the contributions to all funds:");
+		for (Donation donation : donations) {
+			System.out.println("* " + fundMap.get(donation.getFundId()) + ": $" + donation.getAmount() + " on " + donation.getDate());
+		}
+
+		System.out.println("Press the Enter key to go back to the listing of funds");
+		in.nextLine();
 	}
 	
 	

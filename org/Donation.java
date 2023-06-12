@@ -1,4 +1,7 @@
-public class Donation {
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+public class Donation implements Comparable<Donation> {
 	
 	private String fundId;
 	private String contributorName;
@@ -28,7 +31,7 @@ public class Donation {
 		String[] split = date.split("-");
 		String year = split[0];
 		String month = split[1];
-		String day = split[2].split("T")[0];	// This could probably be done better
+		String day = split[2].split("T")[0];
 		return monthNameFromNumber(month) + " " + day + ", " + year;
 	}
 	
@@ -50,4 +53,35 @@ public class Donation {
 		};
 	}
 
+	@Override
+	public int compareTo(Donation donation) {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		try {
+			return -format.parse(this.date).compareTo(format.parse(donation.date));
+		} catch (ParseException e) {
+			return 0;
+
+//			String[] split = this.date.split("-");
+//			String year = split[0];
+//			String month = split[1];
+//			String day = split[2].split("T")[0];
+//
+//			String[] split1 = donation.date.split("-");
+//			String year1 = split1[0];
+//			String month1 = split1[1];
+//			String day1 = split1[2].split("T")[0];
+//
+//			int compareYear = Integer.valueOf(year).compareTo(Integer.valueOf(year1));
+//			if (compareYear == 0) {
+//				return compareYear;
+//			} else {
+//				int compareMonth = Integer.valueOf(month).compareTo(Integer.valueOf(month1));
+//				if (compareMonth == 0) {
+//					return compareMonth;
+//				} else {
+//					return Integer.valueOf(day).compareTo(Integer.valueOf(day1));
+//				}
+//			}
+		}
+	}
 }
