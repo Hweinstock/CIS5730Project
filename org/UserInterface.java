@@ -47,7 +47,7 @@ public class UserInterface {
 			while(true) {
 				try {
 					option = Integer.parseInt(userInput);
-					if(0 <= option && option <= numFunds) { // to check if input fund number is valid
+					if(0 <= option && option <= numFunds+1) { // to check if input fund number is valid
 						break;
 					}
 					System.out.println("There are only " + numFunds + " funds in the organization. \n "
@@ -55,7 +55,8 @@ public class UserInterface {
 					userInput = in.nextLine().trim();
 				}
 				catch(Exception e) {
-					in.next(); // to advance to the next token
+//					in.next(); // to advance to the next token
+					userInput = in.nextLine().trim();
 					System.out.println("Please enter a valid integer between 0 and " + (numFunds+1));
 				}
 			}
