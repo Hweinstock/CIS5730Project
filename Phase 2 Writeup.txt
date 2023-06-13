@@ -3,14 +3,15 @@
 Phase 2 Writeup for Group 8:
 Group Members: Harry Weinstock, Ryan Trotter, Ankith Suhas Pinnamaneni
 
-1. Additional Tasks we would like graded: 2.8, 2.9
+1. Additional Tasks we would like graded: 2.8, 2.9, 2.11 (1.5)
 
 2. Changes made to the code:
   2.1: leverage a map in the DataManager class to cache responses for getContributorName. Add some tests, to make sure it works as expected. 
   2.2: Implemented defensive programming such that the tests pass. 
   2.3: Made changes to displayFund() so that it calls another method displayContributions() that computes the aggregate contributions. It does so only if that particular fund's aggregate hasn't been calculated yet. 
   2.8: Made changes to the main method to not read in from the program's arguments. Added in another method userLogin() that implements the user input. Modified start() so that it logs out when the condition is met and prompts the user to re-enter the login information.
-  2.9: 
+  2.9: Added another input option (in form of number) to see all donations to an organization. Added displayAllFunds() that collects all funds and sorts by date. Added @override compareTo() in Donation class so that Collections.sort would sort by date. In compareTo converted date from string to Date to compare.
+  2.11 (1.5): Added count variable to increment and store total donations. Added another listview line that displayed the total donations.
 
 3. and 4. Bugs Found: No bugs were found. 
 
@@ -18,5 +19,5 @@ Group Members: Harry Weinstock, Ryan Trotter, Ankith Suhas Pinnamaneni
 
 6. Group Member's Contributions:
   Harry: Worked on 2.1 and 2.2 with the defensive programming and the caching implementation. 
-  Ryan: 
+  Ryan: Implemented tasks 2.9 and 1.5
   Ankith: Implemented the display and caching of aggregate donations. Also implemented the login/logout functionality. 
