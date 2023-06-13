@@ -30,6 +30,7 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+    namespace 'edu.upenn.cis573.project'
 }
 
 dependencies {
