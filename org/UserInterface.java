@@ -1,13 +1,18 @@
 
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Map;
+import java.util.Scanner; 
 // GIT
 public class UserInterface {
 	
 	
 	private DataManager dataManager;
 	private Organization org;
-	private Scanner in = new Scanner(System.in);
+	private static Scanner in = new Scanner(System.in);
+	private static Map<Integer, List<String>> aggregateContriMap = new HashMap<Integer, List<String>>();
 	
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
@@ -31,23 +36,33 @@ public class UserInterface {
 				System.out.println("Enter the fund number to see more information.");
 			}
 			System.out.println("Enter 0 to create a new fund");
+			System.out.println("Enter 'logout' to log out of the app");
 			int numFunds = org.getFunds().size();
 			int option;
+			String userInput = in.nextLine().trim();
+			
+			if (userInput.equals("logout")) {
+				String[] strArr = new String[0];
+				main(strArr);
+				return;
+			}
+			
 			while(true) {
 				try {
-					option = in.nextInt();
-					in.nextLine();
+					option = Integer.parseInt(userInput);
 					if(0 <= option && option <= numFunds) { // to check if input fund number is valid
 						break;
 					}
 					System.out.println("There are only " + numFunds + " funds in the organization. \n "
 							+ "So please enter a fund number between 1 and " + numFunds + " to see more information about the fund.");
+					userInput = in.nextLine().trim();
 				}
 				catch(Exception e) {
 					in.next(); // to advance to the next token
 					System.out.println("Please enter a valid integer between 0 and " + numFunds);
 				}
 			}
+			
 			if (option == 0) {
 				createFund(); 
 			}
@@ -103,7 +118,21 @@ public class UserInterface {
 
 		long totalAmount = 0;
 		List<Donation> donations = fund.getDonations();
-		System.out.println("Number of donations: " + donations.size());
+		System.out.println("Number of donations: " + donations.size()); 
+		
+		if (donations.size() >= 1) { 
+			if(aggregateContriMap.containsKey(fundNumber)) {
+				List<String> valueFromMap = aggregateContriMap.get(fundNumber);
+				String displayStr = valueFromMap.get(0);
+				System.out.println(displayStr);
+			}
+			else {
+				displayContributions(donations, fundNumber);
+				List<String> valueFromMap = aggregateContriMap.get(fundNumber);
+				String displayStr = valueFromMap.get(0);
+				System.out.println(displayStr);	
+			}
+		}
 		for (Donation donation : donations) {
 			totalAmount += donation.getAmount();
 			System.out.println("* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + donation.getDate());
@@ -121,15 +150,82 @@ public class UserInterface {
 	}
 	
 	
+	public static List<String> userLogin(){
+		List<String> loginCreds = new ArrayList<String>();
+		try {
+			System.out.print("Please enter the username: ");
+			String username = in.nextLine().trim();
+			
+			System.out.print("Please enter the password: ");
+			String password = in.nextLine().trim();
+			loginCreds.add(username);
+			loginCreds.add(password);
+			return loginCreds;
+		}
+		catch(Exception e) {
+			System.out.println("Please enter a valid value for the username and password.");
+		}
+		return null;
+	}
+	
+	
+	public static void displayContributions(List<Donation> donorList, int fundNumber) {
+		long totAmount = 0;
+		HashMap<String, Long> contrAmounts = new HashMap<String, Long>();
+		HashMap<String, Integer> contrTimes = new HashMap<String, Integer>();
+		List<String> mapValue = new ArrayList<String>();
+		
+		for(Donation donation : donorList) {
+			String donorName = donation.getContributorName();
+			Long donorAmount = donation.getAmount();
+			totAmount += donorAmount;
+			
+			if(contrAmounts.containsKey(donorName)) {
+				Long currAmount = contrAmounts.get(donorName);
+				contrAmounts.put(donorName, currAmount+donorAmount);
+				
+				Integer numContributions = contrTimes.get(donorName);
+				contrTimes.put(donorName, numContributions+1);
+				
+			}
+			else {
+				contrAmounts.put(donorName, donorAmount);
+				contrTimes.put(donorName, 1);
+			}
+		}
+		
+		List<Map.Entry<String, Long>> contrEntries = new ArrayList<>(contrAmounts.entrySet());
+		contrEntries.sort(Collections.reverseOrder(Map.Entry.comparingByValue()));
+		
+		String displayString = "\nAggregate Donations: \n";
+		
+		for (Map.Entry<String, Long> entry : contrEntries) {
+			String donor = entry.getKey();
+			Long amount = entry.getValue();
+			Integer numContr = contrTimes.get(donor);
+			
+			displayString += "* " +  donor + " has made " + numContr + " donations totalling: $" + amount + "\n";
+		}
+		
+		mapValue.add(displayString);
+		mapValue.add(Long.toString(totAmount));
+		
+		aggregateContriMap.put(fundNumber, mapValue);
+		
+	}
+	
+	
 	public static void main(String[] args) {
 		
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
-		String login = args[0];
-		String password = args[1];
+		
+		List<String> loginDetails = userLogin();
+		String loginUser = loginDetails.get(0);
+		String passwordUser = loginDetails.get(1);
 		
 		try {
-			Organization org = ds.attemptLogin(login, password);
+			Organization org = ds.attemptLogin(loginUser, passwordUser); 
 			
 			if (org == null) {
 				System.out.println("Login failed. Incorrect username or password.");
@@ -142,6 +238,7 @@ public class UserInterface {
 			
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("Error in communicating with server.");
 		}
 		
