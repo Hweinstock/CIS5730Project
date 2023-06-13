@@ -3,7 +3,7 @@
 Phase 2 Writeup for Group 8:
 Group Members: Harry Weinstock, Ryan Trotter, Ankith Suhas Pinnamaneni
 
-1. Additional Tasks we would like graded: 2.8, 2.9, 2.1, 2.2
+1. Additional Tasks we would like graded: 2.8, 2.9
 
 2. Changes made to the code:
   2.1: leverage a map in the DataManager class to cache responses for getContributorName. Add some tests, to make sure it works as expected. 
