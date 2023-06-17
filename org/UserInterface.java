@@ -266,7 +266,7 @@ public class UserInterface {
 			
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			System.out.println("Error in communicating with server.");
 		}
 		
