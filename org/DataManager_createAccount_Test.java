@@ -58,4 +58,22 @@ public class DataManager_createAccount_Test {
 		});
 		boolean result = dm.createAccount("username", "password");
 	}
+
+	@Test(expected=IllegalArgumentException.class) 
+	public void testNullUsername() {
+		DataManager dm = new DataManager(new WebClient("localhost", 3001));
+		boolean result = dm.createAccount(null, "password"); 
+	}
+
+	@Test(expected=IllegalArgumentException.class) 
+	public void testNullPassword() {
+		DataManager dm = new DataManager(new WebClient("localhost", 3001));
+		boolean result = dm.createAccount("username", null); 
+	}
+
+	@Test(expected=IllegalStateException.class) 
+	public void testNullClient() {
+		DataManager dm = new DataManager(null);
+		boolean result = dm.createAccount("username", "password"); 
+	}
 }

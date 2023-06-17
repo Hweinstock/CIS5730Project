@@ -167,4 +167,23 @@ public class DataManager_attemptLogin_Test {
 		});
 		Organization org = dm.attemptLogin("username", "password"); 
 	}
+
+	@Test(expected=IllegalArgumentException.class) 
+	public void testNullUsername() {
+		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001));
+		Organization org = dm.attemptLogin(null, "password"); 
+	}
+
+	@Test(expected=IllegalArgumentException.class) 
+	public void testNullPassword() {
+		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001));
+		Organization org = dm.attemptLogin("username", null); 
+	}
+
+	@Test(expected=IllegalStateException.class) 
+	public void testNullClient() {
+		TestDataManager dm = new TestDataManager(null);
+		Organization org = dm.attemptLogin("username", "password"); 
+	}
+
 }
