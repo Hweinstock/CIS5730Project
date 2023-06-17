@@ -222,6 +222,25 @@ public class UserInterface {
 		return null;
 	}
 
+	public static List<String> promptForNewOrg(){
+		List<String> org = new ArrayList<String>();
+		try {
+			System.out.print("Please enter the organization name: ");
+			String name = in.nextLine().trim();
+
+			System.out.print("Please enter the organization description: ");
+			String description = in.nextLine().trim();
+
+			org.add(name);
+			org.add(description);
+			return org;
+		}
+		catch(Exception e) {
+			System.out.println("Please enter a valid value for the new organization name and description.");
+		}
+		return null;
+	}
+
 
 	public static void displayContributions(List<Donation> donorList, int fundNumber) {
 		long totAmount = 0;
@@ -282,12 +301,19 @@ public class UserInterface {
 				break;
 			case CREATE_ACCOUNT:
 				System.out.println("-------------------");
-				System.out.println("\n Creating new account:");
+				System.out.println("\n Creating new organization:");
 				System.out.println("-------------------");
-				loginDetails = promptForLogin();
-				boolean result = ds.createAccount(loginDetails.get(0), loginDetails.get(1));
-				if(!result){
-					System.out.println("Unable to create new account, please restart the app and try again.");
+				try {
+					List<String> orgInfo = promptForNewOrg();
+					loginDetails = promptForLogin();
+					boolean result = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
+					if(!result){
+						System.out.println("Unable to create new account, please restart the app and try again.");
+						return;
+					}
+				} catch (Exception e) {
+					System.out.println("An error occurred in creating the new organization, please restart the app try again.");
+					return;
 				}
 				break;
 			case EXIT:

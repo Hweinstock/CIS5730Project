@@ -23,9 +23,13 @@ public class DataManager {
 	private String failedConnectionErrorMsg = "Unable to connect with WebClient";
 	private String webClientResponseErrorMsg = "Web Client responded with error";
 
-	public boolean createAccount(String login, String password) {
-		if(login == null || password == null){
+	public boolean createOrg(String login, String password, String orgName, String orgDescription) {
+		if(login == null || password == null || orgName == null || orgDescription == null){
 			throw new IllegalArgumentException("Null Login or password attemped.");
+		}
+
+		if(login == "" || password == "" || orgName == "" || orgDescription == ""){
+			return false;
 		}
 
 		if(client == null){
