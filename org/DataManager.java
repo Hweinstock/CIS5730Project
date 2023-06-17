@@ -23,6 +23,39 @@ public class DataManager {
 	private String failedConnectionErrorMsg = "Unable to connect with WebClient";
 	private String webClientResponseErrorMsg = "Web Client responded with error";
 
+	public boolean createAccount(String login, String password) {
+		if(login == null || password == null){
+			throw new IllegalArgumentException("Null Login or password attemped.");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("login", login);
+			map.put("password", password);
+			String response = client.makeRequest("/createOrg", map);
+
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+
+			if (status.equals("success")){
+				return true;
+			} else if(status.equals("failed")){
+				return false;
+			}
+			else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+		} 
+		catch (Exception e) {
+			throw new IllegalStateException(failedConnectionErrorMsg);
+		}
+	}
+
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.
 	 * This method uses the /findOrgByLoginAndPassword endpoint in the API
@@ -46,7 +79,7 @@ public class DataManager {
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status"); 
+			String status = (String) json.get("status"); 
 			
 			if (status.equals("success")) {
 				JSONObject data = (JSONObject)json.get("data");

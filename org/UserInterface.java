@@ -185,9 +185,10 @@ public class UserInterface {
 	}
 	
 	public static WelcomeOption welcomeUser() {
+		System.out.println("-------------------");
 		System.out.println("Welcome to our app!");
 		System.out.println("Please enter 0 to login, 1 to create a new account, and 2 to exit.");
-		
+		System.out.println("-------------------");
 		String userInput;
 		int optionChosen;
 		while(true) {
@@ -201,8 +202,9 @@ public class UserInterface {
 			}
 		}
 	}
+
 	
-	public static List<String> userLogin(){
+	public static List<String> promptForLogin(){
 		List<String> loginCreds = new ArrayList<String>();
 		try {
 			System.out.print("Please enter the username: ");
@@ -276,11 +278,17 @@ public class UserInterface {
 		switch ( optionSelected ) {
 			case LOGIN:
 				System.out.println("Login selected");
-				loginDetails = userLogin();
+				loginDetails = promptForLogin();
 				break;
 			case CREATE_ACCOUNT:
-				System.out.println("Create Account Selected");
-				loginDetails = null;
+				System.out.println("-------------------");
+				System.out.println("\n Creating new account:");
+				System.out.println("-------------------");
+				loginDetails = promptForLogin();
+				boolean result = ds.createAccount(loginDetails.get(0), loginDetails.get(1));
+				if(!result){
+					System.out.println("Unable to create new account, please restart the app and try again.");
+				}
 				break;
 			case EXIT:
 				System.out.println("Exit selected");
