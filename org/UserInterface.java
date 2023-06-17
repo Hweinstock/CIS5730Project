@@ -271,8 +271,25 @@ public class UserInterface {
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
 		WelcomeOption optionSelected = welcomeUser();
-		System.out.println(optionSelected);
-		List<String> loginDetails = userLogin();
+		List<String> loginDetails;
+	
+		switch ( optionSelected ) {
+			case LOGIN:
+				System.out.println("Login selected");
+				loginDetails = userLogin();
+				break;
+			case CREATE_ACCOUNT:
+				System.out.println("Create Account Selected");
+				loginDetails = null;
+				break;
+			case EXIT:
+				System.out.println("Exit selected");
+				return;
+			default:
+				System.out.println("An unknown error occurred, please restart the application.");
+				return;
+		}
+
 		String loginUser = loginDetails.get(0);
 		String passwordUser = loginDetails.get(1);
 		
