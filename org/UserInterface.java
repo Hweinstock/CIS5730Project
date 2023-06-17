@@ -9,6 +9,12 @@ public class UserInterface {
 	private Organization org;
 	private static Scanner in = new Scanner(System.in);
 	private static Map<Integer, List<String>> aggregateContriMap = new HashMap<Integer, List<String>>();
+
+	private enum WelcomeOption {
+		LOGIN, 
+		CREATE_ACCOUNT, 
+		EXIT
+	}
 	
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
@@ -178,6 +184,23 @@ public class UserInterface {
 		in.nextLine();
 	}
 	
+	public static WelcomeOption welcomeUser() {
+		System.out.println("Welcome to our app!");
+		System.out.println("Please enter 0 to login, 1 to create a new account, and 2 to exit.");
+		
+		String userInput;
+		int optionChosen;
+		while(true) {
+			try {
+				userInput = in.nextLine().trim();
+				optionChosen = Integer.parseInt(userInput); 
+				return WelcomeOption.values()[optionChosen];
+			}
+			catch(Exception e) {
+				System.out.println("Please enter a valid option: 0, 1, or 2.");
+			}
+		}
+	}
 	
 	public static List<String> userLogin(){
 		List<String> loginCreds = new ArrayList<String>();
@@ -247,7 +270,8 @@ public class UserInterface {
 	public static void main(String[] args) {
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
-
+		WelcomeOption optionSelected = welcomeUser();
+		System.out.println(optionSelected);
 		List<String> loginDetails = userLogin();
 		String loginUser = loginDetails.get(0);
 		String passwordUser = loginDetails.get(1);
