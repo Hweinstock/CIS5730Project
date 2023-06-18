@@ -306,11 +306,8 @@ public class UserInterface {
 				try {
 					List<String> orgInfo = promptForNewOrg();
 					loginDetails = promptForLogin();
-					boolean result = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
-					if(!result){
-						System.out.println("Unable to create new account, please restart the app and try again.");
-						return;
-					}
+					DataManager.OrgCreationStatus result = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
+					
 				} catch (Exception e) {
 					System.out.println("An error occurred in creating the new organization, please restart the app try again.");
 					return;

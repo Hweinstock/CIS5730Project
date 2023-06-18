@@ -18,18 +18,25 @@ public class DataManager {
 		this.client = client;
 	}
 
+	public enum OrgCreationStatus {
+		CREATED, 
+		SERVER_ERROR, 
+		DUPLICATE, 
+		INVALID
+	}
+
 	private String nullWebClientErrorMsg = "WebClient is null";
 	private String unableToParseRsp = "Unable to parse response from WebClient";
 	private String failedConnectionErrorMsg = "Unable to connect with WebClient";
 	private String webClientResponseErrorMsg = "Web Client responded with error";
 
-	public boolean createOrg(String login, String password, String orgName, String orgDescription) {
+	public OrgCreationStatus createOrg(String login, String password, String orgName, String orgDescription) {
 		if(login == null || password == null || orgName == null || orgDescription == null){
 			throw new IllegalArgumentException("Null Login or password attemped.");
 		}
 
 		if(login == "" || password == "" || orgName == "" || orgDescription == ""){
-			return false;
+			return OrgCreationStatus.INVALID;
 		}
 
 		if(client == null){
@@ -37,7 +44,7 @@ public class DataManager {
 		}
 
 		if(this.doesLoginExist(login)){
-			return false;
+			return OrgCreationStatus.DUPLICATE;
 		}
 		try {
 			Map<String, Object> map = new HashMap<>();
@@ -51,16 +58,16 @@ public class DataManager {
 			String status = (String) json.get("status");
 
 			if (status.equals("success")){
-				return true;
+				return OrgCreationStatus.CREATED;
 			} else if(status.equals("failed")){
-				return false;
+				return OrgCreationStatus.SERVER_ERROR;
 			}
 			else {
 				throw new IllegalStateException(failedConnectionErrorMsg);
 			}
 		} 
 		catch (Exception e) {
-			throw new IllegalStateException(failedConnectionErrorMsg);
+			return OrgCreationStatus.SERVER_ERROR;
 		}
 	}
 
