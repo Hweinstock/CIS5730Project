@@ -9,6 +9,7 @@ public class DataManager_createOrg_Test {
 
 	// Mock object for TestDataManager to allow us to test attempLogin in isolation. 
 	
+	
     @Test
 	public void testSuccessfulCreation() {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
@@ -19,7 +20,11 @@ public class DataManager_createOrg_Test {
 				response.put("status", "success");
 				return response.toJSONString();
 			}
-		});
+
+		}) {
+			@Override
+			public boolean doesLoginExist(String login) { return false; }
+		};
 
 		boolean result = dm.createOrg("username", "password", "orgName", "orgDesc");
 		
@@ -36,7 +41,31 @@ public class DataManager_createOrg_Test {
 				response.put("status", "failed");
 				return response.toJSONString();
 			}
-		});
+		}) {
+			@Override
+			public boolean doesLoginExist(String login) { return false; }
+		};
+
+		boolean result = dm.createOrg("username", "password", "orgName", "orgDesc");
+		
+		assertFalse(result);
+	}
+
+	@Test
+	public void testLoginAlreadyExists() {
+		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+
+			@Override
+			public String makeRequest(String resource, Map<String, Object> queryParams) {
+				JSONObject response = new JSONObject();
+				response.put("status", "failed");
+				return response.toJSONString();
+			}
+		}) {
+
+			@Override
+			public boolean doesLoginExist(String login) { return true; }
+		};
 
 		boolean result = dm.createOrg("username", "password", "orgName", "orgDesc");
 		
@@ -54,8 +83,10 @@ public class DataManager_createOrg_Test {
 				return response.toJSONString();
 			}
 			
-			
-		});
+		}) {
+			@Override
+			public boolean doesLoginExist(String login) { return false; }
+		};
 		boolean result = dm.createOrg("username", "password", "orgName", "orgDesc");
 	}
 

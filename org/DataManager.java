@@ -36,12 +36,16 @@ public class DataManager {
 			throw new IllegalStateException(nullWebClientErrorMsg);
 		}
 
+		if(this.doesLoginExist(login)){
+			return false;
+		}
 		try {
 			Map<String, Object> map = new HashMap<>();
 			map.put("login", login);
 			map.put("password", password);
+			map.put("name", orgName);
+			map.put("description", orgDescription);
 			String response = client.makeRequest("/createOrg", map);
-
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
 			String status = (String) json.get("status");
@@ -56,6 +60,34 @@ public class DataManager {
 			}
 		} 
 		catch (Exception e) {
+			throw new IllegalStateException(failedConnectionErrorMsg);
+		}
+	}
+
+	public boolean doesLoginExist(String login) {
+		if(login == null) {
+			throw new IllegalArgumentException("Null login attemped.");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+		
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("login", login);
+			String response = client.makeRequest("/doesLoginExist", map);
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+			if (status.equals("success")) {
+				boolean result = (boolean) json.get("data");
+				return result;
+			} else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+
+		} catch(Exception exception) {
 			throw new IllegalStateException(failedConnectionErrorMsg);
 		}
 	}
