@@ -287,6 +287,38 @@ public class UserInterface {
 
 	}
 
+	private static List<String> createAccount(DataManager ds) {
+		System.out.println("-------------------");
+		System.out.println("\n Creating new organization:");
+		System.out.println("-------------------");
+		while(true) {
+			try {
+				List<String> orgInfo = promptForNewOrg();
+				List<String>loginDetails = promptForLogin();
+				DataManager.OrgCreationStatus status = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
+				
+				switch(status){
+					case CREATED:
+						System.out.println("Your account has been created, you will now be logged in!");
+						return loginDetails;
+					case DUPLICATE:
+						System.out.println("The username you entered already exists, please try a different one.");
+						break;
+					case INVALID:
+						System.out.println("The information you entered is invalid. Please try again and make sure no entries are blank.");
+						break;
+					case SERVER_ERROR:
+						System.out.println("Unable to communicate with server, please try again. ");
+						break;
+					default:
+						throw new IllegalStateException("Unknown DataManager.OrgCreationStatus seen: " + status);
+				}
+			} catch (Exception e) {
+				System.out.println("An error occurred in creating the new organization, please try again.");
+
+			}
+		}
+	}
 
 	public static void main(String[] args) {
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
@@ -300,18 +332,7 @@ public class UserInterface {
 				loginDetails = promptForLogin();
 				break;
 			case CREATE_ACCOUNT:
-				System.out.println("-------------------");
-				System.out.println("\n Creating new organization:");
-				System.out.println("-------------------");
-				try {
-					List<String> orgInfo = promptForNewOrg();
-					loginDetails = promptForLogin();
-					DataManager.OrgCreationStatus result = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
-					
-				} catch (Exception e) {
-					System.out.println("An error occurred in creating the new organization, please restart the app try again.");
-					return;
-				}
+				loginDetails = createAccount(ds);
 				break;
 			case EXIT:
 				System.out.println("Exit selected");

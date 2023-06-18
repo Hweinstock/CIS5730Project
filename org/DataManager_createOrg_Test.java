@@ -71,7 +71,7 @@ public class DataManager_createOrg_Test {
 		assertEquals(DataManager.OrgCreationStatus.DUPLICATE, status);
 	}
 
-	@Test(expected=IllegalStateException.class) 
+	@Test
 	public void testErrorInCreation() {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 
@@ -87,6 +87,8 @@ public class DataManager_createOrg_Test {
 			public boolean doesLoginExist(String login) { return false; }
 		};
 		DataManager.OrgCreationStatus status = dm.createOrg("username", "password", "orgName", "orgDesc");
+		
+		assertEquals(DataManager.OrgCreationStatus.SERVER_ERROR, status);
 	}
 
 	@Test(expected=IllegalArgumentException.class) 
