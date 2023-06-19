@@ -8,6 +8,52 @@ const {Donation} = require('./DbConfig.js');
 
 
 /*
+Handle the creation of new organizations. 
+*/
+app.use('/createOrg', (req, res) => {
+
+	var org = new Organization({
+		login: req.query.login,
+		password: req.query.password,
+		name: req.query.name,
+		description: req.query.description,
+		funds: []
+	    });
+
+	org.save( (err) => {
+		if (err) {
+		    res.json({"status": "error"});
+		}
+		else {
+		    //console.log(org);
+		    res.json({"status": "success", "data" : org});
+		}
+	    });
+
+    });
+
+/*
+Return a boolean describing whether or not the database contains an org associated with
+req.query.login as the login.
+*/
+app.use('/doesLoginExist', (req, res) => {
+
+	var query = {"login" : req.query.login };
+    
+	Organization.findOne( query, (err, result) => {
+		if (err) {
+		    res.json({"status": "error", "data" : err});
+		}
+		else if (!result){
+			res.json({"status": "success", "data" : false});
+		}
+		else {
+			res.json({"status": "success", "data" : true});
+		}
+	    });
+    });
+
+/*
 Return an org with login specified as req.query.login and password specified as 
 req.query.password; this essentially acts as login for organizations
 */

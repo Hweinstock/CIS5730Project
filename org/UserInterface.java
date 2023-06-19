@@ -9,6 +9,12 @@ public class UserInterface {
 	private Organization org;
 	private static Scanner in = new Scanner(System.in);
 	private static Map<Integer, List<String>> aggregateContriMap = new HashMap<Integer, List<String>>();
+
+	private enum WelcomeOption {
+		LOGIN, 
+		CREATE_ACCOUNT, 
+		EXIT
+	}
 	
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
@@ -178,8 +184,27 @@ public class UserInterface {
 		in.nextLine();
 	}
 	
+	public static WelcomeOption welcomeUser() {
+		System.out.println("-------------------");
+		System.out.println("Welcome to our app!");
+		System.out.println("Please enter 0 to login, 1 to create a new account, and 2 to exit.");
+		System.out.println("-------------------");
+		String userInput;
+		int optionChosen;
+		while(true) {
+			try {
+				userInput = in.nextLine().trim();
+				optionChosen = Integer.parseInt(userInput); 
+				return WelcomeOption.values()[optionChosen];
+			}
+			catch(Exception e) {
+				System.out.println("Please enter a valid option: 0, 1, or 2.");
+			}
+		}
+	}
+
 	
-	public static List<String> userLogin(){
+	public static List<String> promptForLogin(){
 		List<String> loginCreds = new ArrayList<String>();
 		try {
 			System.out.print("Please enter the username: ");
@@ -193,6 +218,25 @@ public class UserInterface {
 		}
 		catch(Exception e) {
 			System.out.println("Please enter a valid value for the username and password.");
+		}
+		return null;
+	}
+
+	public static List<String> promptForNewOrg(){
+		List<String> org = new ArrayList<String>();
+		try {
+			System.out.print("Please enter the organization name: ");
+			String name = in.nextLine().trim();
+
+			System.out.print("Please enter the organization description: ");
+			String description = in.nextLine().trim();
+
+			org.add(name);
+			org.add(description);
+			return org;
+		}
+		catch(Exception e) {
+			System.out.println("Please enter a valid value for the new organization name and description.");
 		}
 		return null;
 	}
@@ -243,12 +287,61 @@ public class UserInterface {
 
 	}
 
+	private static List<String> createAccount(DataManager ds) {
+		System.out.println("-------------------");
+		System.out.println("\n Creating new organization:");
+		System.out.println("-------------------");
+		while(true) {
+			try {
+				List<String> orgInfo = promptForNewOrg();
+				List<String>loginDetails = promptForLogin();
+				DataManager.OrgCreationStatus status = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
+				
+				switch(status){
+					case CREATED:
+						System.out.println("Your account has been created, you will now be logged in!");
+						return loginDetails;
+					case DUPLICATE:
+						System.out.println("The username you entered already exists, please try a different one.");
+						break;
+					case INVALID:
+						System.out.println("The information you entered is invalid. Please try again and make sure no entries are blank.");
+						break;
+					case SERVER_ERROR:
+						System.out.println("Unable to communicate with server, please try again. ");
+						break;
+					default:
+						throw new IllegalStateException("Unknown DataManager.OrgCreationStatus seen: " + status);
+				}
+			} catch (Exception e) {
+				System.out.println("An error occurred in creating the new organization, please try again.");
+
+			}
+		}
+	}
 
 	public static void main(String[] args) {
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
+		WelcomeOption optionSelected = welcomeUser();
+		List<String> loginDetails;
+	
+		switch ( optionSelected ) {
+			case LOGIN:
+				System.out.println("Login selected");
+				loginDetails = promptForLogin();
+				break;
+			case CREATE_ACCOUNT:
+				loginDetails = createAccount(ds);
+				break;
+			case EXIT:
+				System.out.println("Exit selected");
+				return;
+			default:
+				System.out.println("An unknown error occurred, please restart the application.");
+				return;
+		}
 
-		List<String> loginDetails = userLogin();
 		String loginUser = loginDetails.get(0);
 		String passwordUser = loginDetails.get(1);
 		
@@ -266,7 +359,7 @@ public class UserInterface {
 			
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			System.out.println("Error in communicating with server.");
 		}
 		

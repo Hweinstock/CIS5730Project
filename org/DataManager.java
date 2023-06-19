@@ -18,10 +18,86 @@ public class DataManager {
 		this.client = client;
 	}
 
+	public enum OrgCreationStatus {
+		CREATED, 
+		SERVER_ERROR, 
+		DUPLICATE, 
+		INVALID
+	}
+
 	private String nullWebClientErrorMsg = "WebClient is null";
 	private String unableToParseRsp = "Unable to parse response from WebClient";
 	private String failedConnectionErrorMsg = "Unable to connect with WebClient";
 	private String webClientResponseErrorMsg = "Web Client responded with error";
+
+	public OrgCreationStatus createOrg(String login, String password, String orgName, String orgDescription) {
+		if(login == null || password == null || orgName == null || orgDescription == null){
+			throw new IllegalArgumentException("Null Login or password attemped.");
+		}
+
+		if(login == "" || password == "" || orgName == "" || orgDescription == ""){
+			return OrgCreationStatus.INVALID;
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+
+		if(this.doesLoginExist(login)){
+			return OrgCreationStatus.DUPLICATE;
+		}
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("login", login);
+			map.put("password", password);
+			map.put("name", orgName);
+			map.put("description", orgDescription);
+			String response = client.makeRequest("/createOrg", map);
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+
+			if (status.equals("success")){
+				return OrgCreationStatus.CREATED;
+			} else if(status.equals("failed")){
+				return OrgCreationStatus.SERVER_ERROR;
+			}
+			else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+		} 
+		catch (Exception e) {
+			return OrgCreationStatus.SERVER_ERROR;
+		}
+	}
+
+	public boolean doesLoginExist(String login) {
+		if(login == null) {
+			throw new IllegalArgumentException("Null login attemped.");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+		
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("login", login);
+			String response = client.makeRequest("/doesLoginExist", map);
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+			if (status.equals("success")) {
+				boolean result = (boolean) json.get("data");
+				return result;
+			} else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+
+		} catch(Exception exception) {
+			throw new IllegalStateException(failedConnectionErrorMsg);
+		}
+	}
 
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.
@@ -46,7 +122,7 @@ public class DataManager {
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status"); 
+			String status = (String) json.get("status"); 
 			
 			if (status.equals("success")) {
 				JSONObject data = (JSONObject)json.get("data");
