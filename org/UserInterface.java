@@ -56,7 +56,7 @@ public class UserInterface {
 				return;
 			} else if (userInput.equals("account")) {
 				System.out.println("You chose to change account info.");
-				Organization newOrg = changeAccountInfo(org.getId(), credentials);
+				Organization newOrg = changeAccountInfo(org.getId(), org.getName(), org.getDescription(), credentials);
 				if(newOrg != null){
 					org = newOrg;
 				}
@@ -106,7 +106,14 @@ public class UserInterface {
 		
 	}
 
-	public Organization changeAccountInfo(String orgId, Credentials credentials) {
+	public Organization changeAccountInfo(String orgId, String originalName, String originalDescription, Credentials credentials) {
+
+		System.out.println("-------------------");
+		System.out.println("Your current account information:");
+		System.out.println("\t login: " + credentials.login);
+		System.out.println("\t name: " + originalName);
+		System.out.println("\t description: " + originalDescription);
+		System.out.println("-------------------");
 
 		String passwordEntered;
 		Organization newOrg;
@@ -125,28 +132,29 @@ public class UserInterface {
 			System.out.println("Successfully Authenticated:");
 			
 			System.out.println("Please enter the new name of the organization or leave blank to keep current name.");
-			String newOrgName = in.nextLine().trim();
+			String newName = in.nextLine().trim();
 
 			System.out.println("Please enter the new description of the organization or leave blank to keep current description.");
 			String newDescription = in.nextLine().trim();
-
-			Map<String, String> orgChanges = new HashMap<>();
-			if(!newOrgName.equals("")){
-				orgChanges.put("name", newOrgName);
+			
+			if(newName.equals("")){
+				newName = originalName;
 			}
 
-			if(!newOrgName.equals("")){
-				orgChanges.put("desc", newDescription);
+			if(newDescription.equals("")){
+				newDescription = originalDescription;
 			}
 
-			if(orgChanges.isEmpty()) {
-				System.out.println("Both values were kept to current values, returning to main menu.");	
+			if(newName == originalName && newDescription == originalDescription){
+				System.out.println("No changes made, returning back to main menu.");
+				return null;
 			}
 
 			try {
-				newOrg = dataManager.updateOrg(orgId, orgChanges, credentials);
+				newOrg = dataManager.updateOrg(orgId, newName, newDescription, credentials);
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Error: Unable to update org information. Returning to main menu");
 				return null;
 			}
