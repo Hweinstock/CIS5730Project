@@ -9,4 +9,4 @@ mongo_db/
 .vscode/
 org/pom.xml
 org/target/*
-contributor/.gradle/
+contributor/.gradle/*

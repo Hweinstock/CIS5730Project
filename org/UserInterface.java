@@ -25,6 +25,7 @@ public class UserInterface {
 				
 		while (true) {
 			System.out.println("\n\n");
+			System.out.println("-------------------");
 			if (org.getFunds().size() > 0) {
 				System.out.println("There are " + org.getFunds().size() + " funds in this organization:");
 			
@@ -38,15 +39,28 @@ public class UserInterface {
 				System.out.println("Enter the fund number to see more information.");
 				System.out.println("Enter " + count + " to see information for contributions to all funds.");
 			}
+
 			System.out.println("Enter 0 to create a new fund");
 			System.out.println("Enter 'logout' to log out of the app");
+			System.out.println("Enter 'account' to change Organization account details");
+			System.out.println("-------------------");
+
 			int numFunds = org.getFunds().size();
 			int option;
+			
 			String userInput = in.nextLine().trim();
 
 			if (userInput.equals("logout")) {
 				String[] strArr = new String[0];
 				main(strArr);
+				return;
+			} else if (userInput.equals("account")) {
+				System.out.println("You chose to change account info.");
+				Organization newOrg = changeAccountInfo(org);
+				if(newOrg != null){
+					org = newOrg;
+				}
+				start();
 				return;
 			}
 
@@ -78,6 +92,80 @@ public class UserInterface {
 			}
 		}			
 			
+	}
+
+	public String promptForPassword() {
+		try {
+			System.out.print("Please re-enter your password: ");
+			String passwordEntered = in.nextLine().trim();
+			return passwordEntered;
+		} catch(Exception e) {
+			System.out.println("Please enter a valid value for the password.");
+			return null;
+		}
+		
+	}
+
+	public Organization changeAccountInfo(Organization org) {
+
+		String passwordEntered;
+		Organization newOrg;
+		while(true) {
+			passwordEntered = promptForPassword();
+			if(passwordEntered != null){
+				break;
+			}
+		}
+
+		boolean enteredCorrect;
+		try {
+			enteredCorrect = dataManager.verifyPassword(org, passwordEntered);
+		} catch(Exception e) {
+			System.out.println("Error: Unable to verify password. Returning to main menu.");
+			return null;
+		}
+		
+
+		if(!enteredCorrect){
+			System.out.println("Password entered incorrectly, returning to main menu.");
+			return null;
+		} else {
+			System.out.println("Successfully Authenticated:");
+			
+			System.out.println("Please enter the new name of the organization or leave blank to keep current name.");
+			String newOrgName = in.nextLine().trim();
+
+			System.out.println("Please enter the new description of the organization or leave blank to keep current description.");
+			String newDescription = in.nextLine().trim();
+
+			Map<String, String> orgChanges = new HashMap<>();
+			if(!newOrgName.equals("")){
+				orgChanges.put("name", newOrgName);
+			}
+
+			if(!newOrgName.equals("")){
+				orgChanges.put("desc", newDescription);
+			}
+
+			if(orgChanges.isEmpty()) {
+				System.out.println("Both values were kept to current values, returning to main menu.");	
+			}
+
+			try {
+				newOrg = dataManager.updateOrg(org, orgChanges);
+			}
+			catch (Exception e) {
+				System.out.println("Error: Unable to update org information. Returning to main menu");
+				return null;
+			}
+
+			return newOrg;
+
+
+		}
+
+
+
 	}
 	
 	public void createFund() {
