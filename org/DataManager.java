@@ -135,11 +135,10 @@ public class DataManager {
 		}
 	}
 
-	private Organization parseOrganizationFromJSON(JSONObject data){
+	public Organization parseOrganizationFromJSON(JSONObject data){
 		if(data == null){
 			throw new IllegalArgumentException("Cannot parse null data.");
 		}
-
 		String fundId = (String)data.get("_id");
 		String name = (String)data.get("name");
 		String description = (String)data.get("description");
