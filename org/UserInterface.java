@@ -56,7 +56,7 @@ public class UserInterface {
 				return;
 			} else if (userInput.equals("account")) {
 				System.out.println("You chose to change account info.");
-				Organization newOrg = changeAccountInfo(org);
+				Organization newOrg = changeAccountInfo(org.getId(), credentials);
 				if(newOrg != null){
 					org = newOrg;
 				}
@@ -106,7 +106,7 @@ public class UserInterface {
 		
 	}
 
-	public Organization changeAccountInfo(Organization org) {
+	public Organization changeAccountInfo(String orgId, Credentials credentials) {
 
 		String passwordEntered;
 		Organization newOrg;
@@ -116,17 +116,9 @@ public class UserInterface {
 				break;
 			}
 		}
-
-		boolean enteredCorrect;
-		try {
-			enteredCorrect = dataManager.verifyPassword(org, passwordEntered);
-		} catch(Exception e) {
-			System.out.println("Error: Unable to verify password. Returning to main menu.");
-			return null;
-		}
 		
 
-		if(!enteredCorrect){
+		if(!credentials.isSamePassword(passwordEntered)){
 			System.out.println("Password entered incorrectly, returning to main menu.");
 			return null;
 		} else {
@@ -152,7 +144,7 @@ public class UserInterface {
 			}
 
 			try {
-				newOrg = dataManager.updateOrg(org, orgChanges);
+				newOrg = dataManager.updateOrg(orgId, orgChanges, credentials);
 			}
 			catch (Exception e) {
 				System.out.println("Error: Unable to update org information. Returning to main menu");

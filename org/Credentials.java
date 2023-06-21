@@ -12,5 +12,9 @@ public class Credentials {
     public boolean hasNullValue() {
         return this.login == null || this.password == null;
     }
+
+    public boolean isSamePassword(String targetPassword) {
+        return this.password.equals(targetPassword);
+    }
     
 }

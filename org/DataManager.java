@@ -71,12 +71,8 @@ public class DataManager {
 		}
 	}
 
-	public boolean verifyPassword(Organization org, String password) {
-		return false;
-	}
-
-	public Organization updateOrg(Organization org, Map<String, String> orgChanges) {
-		return org;
+	public Organization updateOrg(String orgId, Map<String, String> orgChanges, Credentials credentials) {
+		return null;
 	}
 
 	public boolean doesLoginExist(String login) {
