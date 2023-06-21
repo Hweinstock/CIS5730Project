@@ -21,7 +21,7 @@ public class UserInterface {
 		this.org = org;
 	} 
 	
-	public void start() {
+	public void start(Credentials credentials) {
 				
 		while (true) {
 			System.out.println("\n\n");
@@ -60,7 +60,7 @@ public class UserInterface {
 				if(newOrg != null){
 					org = newOrg;
 				}
-				start();
+				start(credentials);
 				return;
 			}
 
@@ -292,17 +292,14 @@ public class UserInterface {
 	}
 
 	
-	public static List<String> promptForLogin(){
-		List<String> loginCreds = new ArrayList<String>();
+	public static Credentials promptForLogin(){
 		try {
 			System.out.print("Please enter the username: ");
-			String username = in.nextLine().trim();
+			String login = in.nextLine().trim();
 
 			System.out.print("Please enter the password: ");
 			String password = in.nextLine().trim();
-			loginCreds.add(username);
-			loginCreds.add(password);
-			return loginCreds;
+			return new Credentials(login, password);
 		}
 		catch(Exception e) {
 			System.out.println("Please enter a valid value for the username and password.");
@@ -375,20 +372,20 @@ public class UserInterface {
 
 	}
 
-	private static List<String> createAccount(DataManager ds) {
+	private static Credentials createAccount(DataManager ds) {
 		System.out.println("-------------------");
 		System.out.println("\n Creating new organization:");
 		System.out.println("-------------------");
 		while(true) {
 			try {
 				List<String> orgInfo = promptForNewOrg();
-				List<String>loginDetails = promptForLogin();
-				DataManager.OrgCreationStatus status = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
+				Credentials credentials = promptForLogin();
+				DataManager.OrgCreationStatus status = ds.createOrg(credentials.login, credentials.password, orgInfo.get(0), orgInfo.get(1));
 				
 				switch(status){
 					case CREATED:
 						System.out.println("Your account has been created, you will now be logged in!");
-						return loginDetails;
+						return credentials;
 					case DUPLICATE:
 						System.out.println("The username you entered already exists, please try a different one.");
 						break;
@@ -412,15 +409,15 @@ public class UserInterface {
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
 		WelcomeOption optionSelected = welcomeUser();
-		List<String> loginDetails;
+		Credentials credentials;
 	
 		switch ( optionSelected ) {
 			case LOGIN:
 				System.out.println("Login selected");
-				loginDetails = promptForLogin();
+				credentials = promptForLogin();
 				break;
 			case CREATE_ACCOUNT:
-				loginDetails = createAccount(ds);
+				credentials = createAccount(ds);
 				break;
 			case EXIT:
 				System.out.println("Exit selected");
@@ -429,12 +426,9 @@ public class UserInterface {
 				System.out.println("An unknown error occurred, please restart the application.");
 				return;
 		}
-
-		String loginUser = loginDetails.get(0);
-		String passwordUser = loginDetails.get(1);
 		
 		try {
-			Organization org = ds.attemptLogin(loginUser, passwordUser);
+			Organization org = ds.attemptLogin(credentials.login, credentials.password);
 			
 			if (org == null) {
 				System.out.println("Login failed. Incorrect username or password.");
@@ -443,7 +437,7 @@ public class UserInterface {
 
 				UserInterface ui = new UserInterface(ds, org);
 			
-				ui.start();
+				ui.start(credentials);
 			
 			}
 		} catch (Exception e) {
