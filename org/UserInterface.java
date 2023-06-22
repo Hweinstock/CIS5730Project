@@ -21,10 +21,11 @@ public class UserInterface {
 		this.org = org;
 	} 
 	
-	public void start() {
+	public void start(Credentials credentials) {
 				
 		while (true) {
 			System.out.println("\n\n");
+			System.out.println("-------------------");
 			if (org.getFunds().size() > 0) {
 				System.out.println("There are " + org.getFunds().size() + " funds in this organization:");
 			
@@ -38,15 +39,28 @@ public class UserInterface {
 				System.out.println("Enter the fund number to see more information.");
 				System.out.println("Enter " + count + " to see information for contributions to all funds.");
 			}
+
 			System.out.println("Enter 0 to create a new fund");
 			System.out.println("Enter 'logout' to log out of the app");
+			System.out.println("Enter 'account' to change Organization account details");
+			System.out.println("-------------------");
+
 			int numFunds = org.getFunds().size();
 			int option;
+			
 			String userInput = in.nextLine().trim();
 
 			if (userInput.equals("logout")) {
 				String[] strArr = new String[0];
 				main(strArr);
+				return;
+			} else if (userInput.equals("account")) {
+				System.out.println("You chose to change account info.");
+				Organization newOrg = changeAccountInfo(org.getId(), org.getName(), org.getDescription(), credentials);
+				if(newOrg != null){
+					org = newOrg;
+				}
+				start(credentials);
 				return;
 			}
 
@@ -78,6 +92,80 @@ public class UserInterface {
 			}
 		}			
 			
+	}
+
+	public String promptForPassword() {
+		try {
+			System.out.print("Please re-enter your password: ");
+			String passwordEntered = in.nextLine().trim();
+			return passwordEntered;
+		} catch(Exception e) {
+			System.out.println("Please enter a valid value for the password.");
+			return null;
+		}
+		
+	}
+
+	public Organization changeAccountInfo(String orgId, String originalName, String originalDescription, Credentials credentials) {
+
+		System.out.println("-------------------");
+		System.out.println("Your current account information:");
+		System.out.println("\t login: " + credentials.login);
+		System.out.println("\t name: " + originalName);
+		System.out.println("\t description: " + originalDescription);
+		System.out.println("-------------------");
+
+		String passwordEntered;
+		Organization newOrg;
+		while(true) {
+			passwordEntered = promptForPassword();
+			if(passwordEntered != null){
+				break;
+			}
+		}
+		
+
+		if(!credentials.isSamePassword(passwordEntered)){
+			System.out.println("Password entered incorrectly, returning to main menu.");
+			return null;
+		} else {
+			System.out.println("Successfully Authenticated:");
+			
+			System.out.println("Please enter the new name of the organization or leave blank to keep current name.");
+			String newName = in.nextLine().trim();
+
+			System.out.println("Please enter the new description of the organization or leave blank to keep current description.");
+			String newDescription = in.nextLine().trim();
+			
+			if(newName.equals("")){
+				newName = originalName;
+			}
+
+			if(newDescription.equals("")){
+				newDescription = originalDescription;
+			}
+
+			if(newName == originalName && newDescription == originalDescription){
+				System.out.println("No changes made, returning back to main menu.");
+				return null;
+			}
+
+			try {
+				newOrg = dataManager.updateOrg(orgId, newName, newDescription, credentials);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Error: Unable to update org information. Returning to main menu");
+				return null;
+			}
+
+			return newOrg;
+
+
+		}
+
+
+
 	}
 	
 	public void createFund() {
@@ -204,17 +292,14 @@ public class UserInterface {
 	}
 
 	
-	public static List<String> promptForLogin(){
-		List<String> loginCreds = new ArrayList<String>();
+	public static Credentials promptForLogin(){
 		try {
 			System.out.print("Please enter the username: ");
-			String username = in.nextLine().trim();
+			String login = in.nextLine().trim();
 
 			System.out.print("Please enter the password: ");
 			String password = in.nextLine().trim();
-			loginCreds.add(username);
-			loginCreds.add(password);
-			return loginCreds;
+			return new Credentials(login, password);
 		}
 		catch(Exception e) {
 			System.out.println("Please enter a valid value for the username and password.");
@@ -287,20 +372,20 @@ public class UserInterface {
 
 	}
 
-	private static List<String> createAccount(DataManager ds) {
+	private static Credentials createAccount(DataManager ds) {
 		System.out.println("-------------------");
 		System.out.println("\n Creating new organization:");
 		System.out.println("-------------------");
 		while(true) {
 			try {
 				List<String> orgInfo = promptForNewOrg();
-				List<String>loginDetails = promptForLogin();
-				DataManager.OrgCreationStatus status = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
+				Credentials credentials = promptForLogin();
+				DataManager.OrgCreationStatus status = ds.createOrg(credentials.login, credentials.password, orgInfo.get(0), orgInfo.get(1));
 				
 				switch(status){
 					case CREATED:
 						System.out.println("Your account has been created, you will now be logged in!");
-						return loginDetails;
+						return credentials;
 					case DUPLICATE:
 						System.out.println("The username you entered already exists, please try a different one.");
 						break;
@@ -324,15 +409,15 @@ public class UserInterface {
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
 		WelcomeOption optionSelected = welcomeUser();
-		List<String> loginDetails;
+		Credentials credentials;
 	
 		switch ( optionSelected ) {
 			case LOGIN:
 				System.out.println("Login selected");
-				loginDetails = promptForLogin();
+				credentials = promptForLogin();
 				break;
 			case CREATE_ACCOUNT:
-				loginDetails = createAccount(ds);
+				credentials = createAccount(ds);
 				break;
 			case EXIT:
 				System.out.println("Exit selected");
@@ -341,12 +426,9 @@ public class UserInterface {
 				System.out.println("An unknown error occurred, please restart the application.");
 				return;
 		}
-
-		String loginUser = loginDetails.get(0);
-		String passwordUser = loginDetails.get(1);
 		
 		try {
-			Organization org = ds.attemptLogin(loginUser, passwordUser);
+			Organization org = ds.attemptLogin(credentials.login, credentials.password);
 			
 			if (org == null) {
 				System.out.println("Login failed. Incorrect username or password.");
@@ -355,7 +437,7 @@ public class UserInterface {
 
 				UserInterface ui = new UserInterface(ds, org);
 			
-				ui.start();
+				ui.start(credentials);
 			
 			}
 		} catch (Exception e) {

@@ -71,6 +71,42 @@ public class DataManager {
 		}
 	}
 
+	public Organization updateOrg(String orgId, String orgName, String orgDesc, Credentials credentials) {
+		if(orgId == null || orgName == null || orgDesc == null || credentials == null || credentials.hasNullValue()) {
+			throw new IllegalArgumentException("Null credentials, changes, or orgId.");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("id", orgId);
+			map.put("login", credentials.login);
+			map.put("password", credentials.password);
+			map.put("name", orgName);
+			map.put("description", orgDesc);
+
+			String response = client.makeRequest("/updateOrg", map);
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+
+			if(status.equals("success")){
+				JSONObject data = (JSONObject)json.get("data");
+				Organization org = parseOrganizationFromJSON(data);
+				return org;
+			} else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+
+
+		} catch (Exception e) {
+			throw new IllegalStateException(failedConnectionErrorMsg);
+		}
+	}
+
 	public boolean doesLoginExist(String login) {
 		if(login == null) {
 			throw new IllegalArgumentException("Null login attemped.");
@@ -99,6 +135,44 @@ public class DataManager {
 		}
 	}
 
+	public Organization parseOrganizationFromJSON(JSONObject data){
+		if(data == null){
+			throw new IllegalArgumentException("Cannot parse null data.");
+		}
+		String fundId = (String)data.get("_id");
+		String name = (String)data.get("name");
+		String description = (String)data.get("description");
+		Organization org = new Organization(fundId, name, description);
+
+		JSONArray funds = (JSONArray)data.get("funds");
+		Iterator it = funds.iterator();
+		while(it.hasNext()){
+			JSONObject fund = (JSONObject) it.next(); 
+			fundId = (String)fund.get("_id");
+			name = (String)fund.get("name");
+			description = (String)fund.get("description");
+			long target = (Long)fund.get("target");
+
+			Fund newFund = new Fund(fundId, name, description, target);
+
+			JSONArray donations = (JSONArray)fund.get("donations");
+			List<Donation> donationList = new LinkedList<>();
+			Iterator it2 = donations.iterator();
+			while(it2.hasNext()){
+				JSONObject donation = (JSONObject) it2.next();
+				String contributorId = (String)donation.get("contributor");
+				String contributorName = this.getContributorName(contributorId);
+				long amount = (Long)donation.get("amount");
+				String date = (String)donation.get("date");
+				donationList.add(new Donation(fundId, contributorName, amount, date));
+			}
+
+			newFund.setDonations(donationList);
+
+			org.addFund(newFund);
+		}
+		return org;
+	}
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.
 	 * This method uses the /findOrgByLoginAndPassword endpoint in the API
@@ -126,39 +200,7 @@ public class DataManager {
 			
 			if (status.equals("success")) {
 				JSONObject data = (JSONObject)json.get("data");
-				String fundId = (String)data.get("_id");
-				String name = (String)data.get("name");
-				String description = (String)data.get("description");
-				Organization org = new Organization(fundId, name, description);
-
-				JSONArray funds = (JSONArray)data.get("funds");
-				Iterator it = funds.iterator();
-				while(it.hasNext()){
-					JSONObject fund = (JSONObject) it.next(); 
-					fundId = (String)fund.get("_id");
-					name = (String)fund.get("name");
-					description = (String)fund.get("description");
-					long target = (Long)fund.get("target");
-
-					Fund newFund = new Fund(fundId, name, description, target);
-
-					JSONArray donations = (JSONArray)fund.get("donations");
-					List<Donation> donationList = new LinkedList<>();
-					Iterator it2 = donations.iterator();
-					while(it2.hasNext()){
-						JSONObject donation = (JSONObject) it2.next();
-						String contributorId = (String)donation.get("contributor");
-						String contributorName = this.getContributorName(contributorId);
-						long amount = (Long)donation.get("amount");
-						String date = (String)donation.get("date");
-						donationList.add(new Donation(fundId, contributorName, amount, date));
-					}
-
-					newFund.setDonations(donationList);
-
-					org.addFund(newFund);
-
-				}
+				Organization org = this.parseOrganizationFromJSON(data);
 
 				return org;
 			}
