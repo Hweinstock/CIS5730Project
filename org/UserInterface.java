@@ -1,7 +1,6 @@
 
 import java.util.*;
 
-// GIT
 public class UserInterface {
 	
 	
@@ -21,7 +20,7 @@ public class UserInterface {
 		this.org = org;
 	} 
 	
-	public void start(Credentials credentials) {
+	public void start(Credentials credentials) { 
 				
 		while (true) {
 			System.out.println("\n\n");
@@ -43,6 +42,7 @@ public class UserInterface {
 			System.out.println("Enter 0 to create a new fund");
 			System.out.println("Enter 'logout' to log out of the app");
 			System.out.println("Enter 'account' to change Organization account details");
+			System.out.println("Enter 'password' to change the current password");
 			System.out.println("-------------------");
 
 			int numFunds = org.getFunds().size();
@@ -58,11 +58,20 @@ public class UserInterface {
 				System.out.println("You chose to change account info.");
 				Organization newOrg = changeAccountInfo(org.getId(), org.getName(), org.getDescription(), credentials);
 				if(newOrg != null){
-					org = newOrg;
+					org = newOrg; 
 				}
 				start(credentials);
 				return;
+			} else if (userInput.equals("password")) {
+				System.out.println("You chose to change the password.");
+				Organization passwordUpdatedOrg = changePassword(org.getId(), credentials);
+				if(passwordUpdatedOrg != null) {
+					org = passwordUpdatedOrg;
+				}
+				start(credentials); // credentials contains the updated password
+				return;
 			}
+			
 
 			while(true) {
 				try {
@@ -94,9 +103,9 @@ public class UserInterface {
 			
 	}
 
-	public String promptForPassword() {
+	public String promptForPassword(String dispMsg) {
 		try {
-			System.out.print("Please re-enter your password: ");
+			System.out.print(dispMsg);
 			String passwordEntered = in.nextLine().trim();
 			return passwordEntered;
 		} catch(Exception e) {
@@ -118,7 +127,7 @@ public class UserInterface {
 		String passwordEntered;
 		Organization newOrg;
 		while(true) {
-			passwordEntered = promptForPassword();
+			passwordEntered = promptForPassword("Please re-enter your password: ");
 			if(passwordEntered != null){
 				break;
 			}
@@ -161,11 +170,59 @@ public class UserInterface {
 
 			return newOrg;
 
-
 		}
-
-
-
+		
+	}
+	
+	public Organization changePassword(String orgId, Credentials creds) {
+		
+		String currPasswordEntered;
+		Organization updatedOrg;
+		
+		while(true) {
+			currPasswordEntered = promptForPassword("Please enter your current password for authentication: ");
+			if(currPasswordEntered != null) {
+				break;
+			}
+		}
+		
+		if(currPasswordEntered.equals(creds.password)) {
+			String newPasswordEnteredOnce;
+			String newPasswordEnteredTwice;
+			
+			newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
+			if(newPasswordEnteredOnce == null) {
+				return null; // if prompt throws exception
+			}
+			newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
+			if(newPasswordEnteredTwice == null) {
+				return null; // if prompt throws exception
+			}
+			
+			if(newPasswordEnteredOnce.equals(newPasswordEnteredTwice)) {
+				creds.setPassword(newPasswordEnteredOnce);
+				try {
+					updatedOrg = dataManager.updateOrg(orgId, org.getName(), org.getDescription(), creds);
+					System.out.println("Password updated successfully!");
+					return updatedOrg; 
+				}
+				catch(Exception e) {
+//					e.printStackTrace();
+					System.out.println("Error: Unable to update the password due to a server error. Please re-attempt to change the password");
+					creds.setPassword(currPasswordEntered); // reverting back to the original password
+					changePassword(orgId, creds);
+				}
+			}
+			else {
+				System.out.println("The two passwords don't match. Returning to the main menu...");
+				return null;
+			}
+		}
+		else {
+			System.out.println("Incorrect password entered. Returning to the main menu...");
+			return null;
+		}
+		return null;
 	}
 	
 	public void createFund() {
