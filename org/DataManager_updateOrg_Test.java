@@ -112,4 +112,10 @@ public class DataManager_updateOrg_Test {
 
         Organization org = dm.updateOrg("testId", "testName2", "testDescription", new Credentials("login", null));
     }
+    
+    @Test(expected = IllegalStateException.class)
+    public void testNullClient() {
+    	TestDataManager dm = new TestDataManager(null);
+    	Organization org = dm.updateOrg("testId", "testName1", "testDescription", new Credentials("login", "password"));
+    }
 }

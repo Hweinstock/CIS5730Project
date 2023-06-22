@@ -1,3 +1,4 @@
+
 // TODO: are there structs in this language??
 
 public class Credentials {
@@ -8,7 +9,11 @@ public class Credentials {
         this.login = login;
         this.password = password;
     }
-
+    
+    public void setPassword(String newPassword) {
+    	this.password = newPassword;
+    }
+    
     public boolean hasNullValue() {
         return this.login == null || this.password == null;
     }
