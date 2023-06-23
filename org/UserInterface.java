@@ -190,13 +190,26 @@ public class UserInterface {
 			String newPasswordEnteredOnce;
 			String newPasswordEnteredTwice;
 			
-			newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
-			if(newPasswordEnteredOnce == null) {
-				return null; // if prompt throws exception
+			while(true) {
+				newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
+				if(newPasswordEnteredOnce == null) {
+					return null; // if prompt throws exception
+				}
+				if(!newPasswordEnteredOnce.equals("")) {
+					break;
+				}
+				System.out.println("The password cannot be empty. Please try again.\n");
 			}
-			newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
-			if(newPasswordEnteredTwice == null) {
-				return null; // if prompt throws exception
+			
+			while(true) {
+				newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
+				if(newPasswordEnteredTwice == null) {
+					return null; // if prompt throws exception
+				}
+				if(!newPasswordEnteredTwice.equals("")) {
+					break;
+				}
+				System.out.println("The password confirmation cannot be empty. Please try again.\n");
 			}
 			
 			if(newPasswordEnteredOnce.equals(newPasswordEnteredTwice)) {
@@ -226,12 +239,6 @@ public class UserInterface {
 	}
 	
 	public void createFund() {
-		
-//		System.out.print("Enter the fund name: ");
-//		String name = in.nextLine().trim();
-//		
-//		System.out.print("Enter the fund description: ");
-//		String description = in.nextLine().trim();
 		
 		String name;
 		String description;
