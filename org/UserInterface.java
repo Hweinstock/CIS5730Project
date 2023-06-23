@@ -227,12 +227,37 @@ public class UserInterface {
 	
 	public void createFund() {
 		
-		System.out.print("Enter the fund name: ");
-		String name = in.nextLine().trim();
+//		System.out.print("Enter the fund name: ");
+//		String name = in.nextLine().trim();
+//		
+//		System.out.print("Enter the fund description: ");
+//		String description = in.nextLine().trim();
 		
-		System.out.print("Enter the fund description: ");
-		String description = in.nextLine().trim();
-
+		String name;
+		String description;
+		
+		while(true) {
+			System.out.print("Enter the fund name: ");
+			name = in.nextLine().trim();
+			
+			if(name != null && !name.equals("")) {
+				break;
+			}
+			System.out.println("The fund name should not be null or empty.\n");
+			
+		}
+		
+		while(true) {
+			System.out.print("Enter the fund description: ");
+			description = in.nextLine().trim();
+			
+			if(description != null && !description.equals("")) {
+				break;
+			}
+			System.out.println("The fund description should not be null or empty.\n");
+			
+		}
+		
 		long target;
 		while(true) {
 			try {
