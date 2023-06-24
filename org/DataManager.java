@@ -12,16 +12,17 @@ import org.json.simple.parser.JSONParser;
 public class DataManager {
 
 	private final WebClient client;
-	// proctected so that we man manually test/inspect in tests. 
+	// proctected so that we man manually test/inspect in tests.
 	protected Map<String, String> contributorNameCache = new HashMap<String, String>();
+
 	public DataManager(WebClient client) {
 		this.client = client;
 	}
 
 	public enum OrgCreationStatus {
-		CREATED, 
-		SERVER_ERROR, 
-		DUPLICATE, 
+		CREATED,
+		SERVER_ERROR,
+		DUPLICATE,
 		INVALID
 	}
 
@@ -61,12 +62,10 @@ public class DataManager {
 				return OrgCreationStatus.CREATED;
 			} else if(status.equals("failed")){
 				return OrgCreationStatus.SERVER_ERROR;
-			}
-			else {
+			} else {
 				throw new IllegalStateException(failedConnectionErrorMsg);
 			}
-		} 
-		catch (Exception e) {
+		} catch (Exception e) {
 			return OrgCreationStatus.SERVER_ERROR;
 		}
 	}
@@ -79,7 +78,7 @@ public class DataManager {
 		if(client == null){
 			throw new IllegalStateException(nullWebClientErrorMsg);
 		}
-		
+
 		try {
 			Map<String, Object> map = new HashMap<>();
 			map.put("login", login);
@@ -122,8 +121,8 @@ public class DataManager {
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String) json.get("status"); 
-			
+			String status = (String) json.get("status");
+
 			if (status.equals("success")) {
 				JSONObject data = (JSONObject)json.get("data");
 				String fundId = (String)data.get("_id");
@@ -134,7 +133,7 @@ public class DataManager {
 				JSONArray funds = (JSONArray)data.get("funds");
 				Iterator it = funds.iterator();
 				while(it.hasNext()){
-					JSONObject fund = (JSONObject) it.next(); 
+					JSONObject fund = (JSONObject) it.next();
 					fundId = (String)fund.get("_id");
 					name = (String)fund.get("name");
 					description = (String)fund.get("description");
@@ -161,15 +160,12 @@ public class DataManager {
 				}
 
 				return org;
-			}
-			else if(status.equals("login failed")){
+			} else if(status.equals("login failed")){
 				return null;
-			}
-			else {
+			} else {
 				throw new IllegalStateException(failedConnectionErrorMsg);
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 //			e.printStackTrace(); // assuming we don't have to print this since we're displaying the error message in UserInterface.main 
 			throw new IllegalStateException(failedConnectionErrorMsg);
 		}
@@ -213,16 +209,13 @@ public class DataManager {
 				return name;
 			} else if (status.equals("error")) {
 				throw new IllegalStateException(webClientResponseErrorMsg);
-			}
-			else return null;
+			} else return null;
 
-		}
-		catch (IllegalStateException e) {
+		} catch (IllegalStateException e) {
 			throw e;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalStateException(unableToParseRsp);
-		}	
+		}
 	}
 
 	/**
@@ -231,11 +224,10 @@ public class DataManager {
 	 */
 	public Fund createFund(String orgId, String name, String description, long target) {
 
-		if(orgId == null || name == null || description == null)
-		{
+		if(orgId == null || name == null || description == null) {
 			throw new IllegalArgumentException("One of orgId, name, and description are null!");
 		}
-		
+
 		if(client == null){
 			throw new IllegalStateException(nullWebClientErrorMsg);
 		}
@@ -259,14 +251,105 @@ public class DataManager {
 				return new Fund(fundId, name, description, target);
 			} else if (status.equals("error")){
 				throw new IllegalStateException("webClientResponseErrorMsg");
-			}
-			else return null;
+			} else return null;
 
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalStateException(unableToParseRsp);
-		}	
+		}
 	}
 
+	public boolean verifyContributorByName(String name) {
+		if(name == null) {
+			throw new IllegalArgumentException("Contributor name cannot be null.");
+		}
 
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("name", name);
+			String response = client.makeRequest("/verifyContributorByName", map);
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+			if (status.equals("success")) {
+				return true;
+			} else if (status.equals("not found")) {
+				return false;
+			} else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+
+		} catch(Exception exception) {
+			throw new IllegalStateException(failedConnectionErrorMsg);
+		}
+	}
+
+	public String contributorIdByName(String name) {
+		if(name == null) {
+			throw new IllegalArgumentException("Contributor name cannot be null.");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("name", name);
+			String response = client.makeRequest("/contributorIdByName", map);
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+			if (status.equals("success")) {
+				return (String) json.get("id");
+			} else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+
+		} catch(Exception exception) {
+			throw new IllegalStateException(failedConnectionErrorMsg);
+		}
+	}
+
+	public Donation makeDonation(Fund fund, String contributorName, String contributorId, long amount) {
+
+		if(fund == null || contributorName == null || contributorId == null) {
+			throw new IllegalArgumentException("One of fund or contributor is null!");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+
+		try {
+
+			Map<String, Object> map = new HashMap<>();
+			map.put("fund", fund.getId());
+			map.put("contributor", contributorId);
+			map.put("amount", amount);
+			String response = client.makeRequest("/makeDonation", map);
+
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String)json.get("status");
+
+			if (status.equals("success")) {
+				JSONObject donation = (JSONObject)json.get("data");
+				String date = (String)donation.get("date");
+				Donation newDonation = new Donation(fund.getId(), contributorName, amount, date);
+				List<Donation> updatedDonations = new LinkedList<>(fund.getDonations());
+				updatedDonations.add(newDonation);
+				fund.setDonations(updatedDonations);
+				return newDonation;
+			} else if (status.equals("error")){
+				throw new IllegalStateException("webClientResponseErrorMsg");
+			} else return null;
+
+		} catch (Exception e) {
+			throw new IllegalStateException(unableToParseRsp);
+		}
+	}
 }
