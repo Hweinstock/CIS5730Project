@@ -105,9 +105,17 @@ public class UserInterface {
 
 	public String promptForPassword(String dispMsg) {
 		try {
-			System.out.print(dispMsg);
-			String passwordEntered = in.nextLine().trim();
-			return passwordEntered;
+//			System.out.print(dispMsg);
+			while(true) {
+				System.out.println(dispMsg);
+				String passwordEntered = in.nextLine().trim();
+				if(!passwordEntered.equals("")) {
+					return passwordEntered;
+				}
+				System.out.println("The password field cannot be left blank. Please enter a value.\n");
+			}
+//			String passwordEntered = in.nextLine().trim();
+//			return passwordEntered;
 		} catch(Exception e) {
 			System.out.println("Please enter a valid value for the password.");
 			return null;
@@ -190,15 +198,35 @@ public class UserInterface {
 			String newPasswordEnteredOnce;
 			String newPasswordEnteredTwice;
 			
+//			while(true) {
+//				newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
+//				if(newPasswordEnteredOnce == null) {
+//					return null; // if prompt throws exception
+//				}
+//				if(!newPasswordEnteredOnce.equals("")) {
+//					break;
+//				}
+//				System.out.println("The password cannot be empty. Please try again.\n");
+//			}
 			newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
 			if(newPasswordEnteredOnce == null) {
 				return null; // if prompt throws exception
 			}
+			
+//			while(true) {
+//				newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
+//				if(newPasswordEnteredTwice == null) {
+//					return null; // if prompt throws exception
+//				}
+//				if(!newPasswordEnteredTwice.equals("")) {
+//					break;
+//				}
+//				System.out.println("The password confirmation cannot be empty. Please try again.\n");
+//			}
 			newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
 			if(newPasswordEnteredTwice == null) {
 				return null; // if prompt throws exception
 			}
-			
 			if(newPasswordEnteredOnce.equals(newPasswordEnteredTwice)) {
 				creds.setPassword(newPasswordEnteredOnce);
 				try {
@@ -227,12 +255,31 @@ public class UserInterface {
 	
 	public void createFund() {
 		
-		System.out.print("Enter the fund name: ");
-		String name = in.nextLine().trim();
+		String name;
+		String description;
 		
-		System.out.print("Enter the fund description: ");
-		String description = in.nextLine().trim();
-
+		while(true) {
+			System.out.print("Enter the fund name: ");
+			name = in.nextLine().trim();
+			
+			if(name != null && !name.equals("")) {
+				break;
+			}
+			System.out.println("The fund name should not be null or empty.\n");
+			
+		}
+		
+		while(true) {
+			System.out.print("Enter the fund description: ");
+			description = in.nextLine().trim();
+			
+			if(description != null && !description.equals("")) {
+				break;
+			}
+			System.out.println("The fund description should not be null or empty.\n");
+			
+		}
+		
 		long target;
 		while(true) {
 			try {
