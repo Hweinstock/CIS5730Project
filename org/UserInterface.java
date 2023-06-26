@@ -58,7 +58,8 @@ public class UserInterface {
 				return;
 			} else if (userInput.equals("donate")) {
 				createDonation();
-				continue;
+				start(credentials);
+				return;
 			} else if (userInput.equals("account")) {
 				System.out.println("You chose to change account info.");
 				Organization newOrg = changeAccountInfo(org.getId(), org.getName(), org.getDescription(), credentials);
