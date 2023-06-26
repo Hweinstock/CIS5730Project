@@ -1,6 +1,4 @@
 
-// TODO: are there structs in this language??
-
 public class Credentials {
     public String login;
     public String password;

@@ -84,7 +84,6 @@ public class UserInterface {
 					userInput = in.nextLine().trim();
 				}
 				catch(Exception e) {
-//					in.next(); // to advance to the next token
 					userInput = in.nextLine().trim();
 					System.out.println("Please enter a valid integer between 0 and " + (numFunds+1));
 				}
@@ -105,7 +104,6 @@ public class UserInterface {
 
 	public String promptForPassword(String dispMsg) {
 		try {
-//			System.out.print(dispMsg);
 			while(true) {
 				System.out.println(dispMsg);
 				String passwordEntered = in.nextLine().trim();
@@ -114,8 +112,6 @@ public class UserInterface {
 				}
 				System.out.println("The password field cannot be left blank. Please enter a value.\n");
 			}
-//			String passwordEntered = in.nextLine().trim();
-//			return passwordEntered;
 		} catch(Exception e) {
 			System.out.println("Please enter a valid value for the password.");
 			return null;
@@ -171,7 +167,6 @@ public class UserInterface {
 				newOrg = dataManager.updateOrg(orgId, newName, newDescription, credentials);
 			}
 			catch (Exception e) {
-//				e.printStackTrace();
 				System.out.println("Error: Unable to update org information. Returning to main menu");
 				return null;
 			}
@@ -198,31 +193,11 @@ public class UserInterface {
 			String newPasswordEnteredOnce;
 			String newPasswordEnteredTwice;
 			
-//			while(true) {
-//				newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
-//				if(newPasswordEnteredOnce == null) {
-//					return null; // if prompt throws exception
-//				}
-//				if(!newPasswordEnteredOnce.equals("")) {
-//					break;
-//				}
-//				System.out.println("The password cannot be empty. Please try again.\n");
-//			}
 			newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
 			if(newPasswordEnteredOnce == null) {
 				return null; // if prompt throws exception
 			}
 			
-//			while(true) {
-//				newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
-//				if(newPasswordEnteredTwice == null) {
-//					return null; // if prompt throws exception
-//				}
-//				if(!newPasswordEnteredTwice.equals("")) {
-//					break;
-//				}
-//				System.out.println("The password confirmation cannot be empty. Please try again.\n");
-//			}
 			newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
 			if(newPasswordEnteredTwice == null) {
 				return null; // if prompt throws exception
@@ -235,7 +210,6 @@ public class UserInterface {
 					return updatedOrg; 
 				}
 				catch(Exception e) {
-//					e.printStackTrace();
 					System.out.println("Error: Unable to update the password due to a server error. Please re-attempt to change the password");
 					creds.setPassword(currPasswordEntered); // reverting back to the original password
 					changePassword(orgId, creds);
@@ -545,7 +519,6 @@ public class UserInterface {
 			
 			}
 		} catch (Exception e) {
-			//e.printStackTrace();
 			System.out.println("Error in communicating with server.");
 		}
 		
