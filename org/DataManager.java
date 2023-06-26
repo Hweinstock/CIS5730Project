@@ -258,6 +258,10 @@ public class DataManager {
 		}
 	}
 
+	/**
+	 * This method takes a contributor name and verifies it exists using the /verifyContributorByName endpoint in the API
+	 * @return a new Fund object if successful; null if unsuccessful
+	 */
 	public boolean verifyContributorByName(String name) {
 		if(name == null) {
 			throw new IllegalArgumentException("Contributor name cannot be null.");
@@ -320,6 +324,10 @@ public class DataManager {
 			throw new IllegalArgumentException("One of fund or contributor is null!");
 		}
 
+		if (amount < 0) {
+			throw new IllegalArgumentException("Amount cannot be negative!");
+		}
+
 		if(client == null){
 			throw new IllegalStateException(nullWebClientErrorMsg);
 		}
@@ -344,9 +352,9 @@ public class DataManager {
 				updatedDonations.add(newDonation);
 				fund.setDonations(updatedDonations);
 				return newDonation;
-			} else if (status.equals("error")){
+			} else {
 				throw new IllegalStateException("webClientResponseErrorMsg");
-			} else return null;
+			}
 
 		} catch (Exception e) {
 			throw new IllegalStateException(unableToParseRsp);
