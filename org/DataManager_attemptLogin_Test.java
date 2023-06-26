@@ -86,7 +86,6 @@ public class DataManager_attemptLogin_Test {
 			assertEquals(currentExpectedFund.get("target"), currentActualFund.getTarget());
 
 			// Compare the donations associated with each fund. 
-			//System.out.println(currentExpectedFund.get("donations").toString());
 			currentActualDonations = currentActualFund.getDonations();
 			currentExpectedDonations = (List<JSONObject>)currentExpectedFund.get("donations"); 
 			
