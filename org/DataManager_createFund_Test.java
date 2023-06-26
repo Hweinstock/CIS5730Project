@@ -66,5 +66,42 @@ public class DataManager_createFund_Test {
 
 		Fund f = dm.createFund("54321", "failing new fund", "this is a failing new fund", 10000);
 	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testNullClient() {
+
+		DataManager dm = new DataManager(null);
+		Fund f = dm.createFund("12345", "new fund", "this is the new fund", 10000);
+		
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testNullOrgId() {
+
+		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+			
+			@Override
+			public String makeRequest(String resource, Map<String, Object> queryParams) {
+				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"new fund\",\"description\":\"this is the new fund\",\"target\":10000,\"org\":\"5678\",\"donations\":[],\"__v\":0}}";
+
+			}
+			
+		});
+		Fund f = dm.createFund(null, "new fund", "this is the new fund", 10000);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testStatusError() {
+
+		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+
+			@Override
+			public String makeRequest(String resource, Map<String, Object> queryParams) {
+				return "{\"status\": \"error\"}";
+			}
+		});
+
+		Fund f = dm.createFund("54321", "error new fund", "this is fund returns status: error", 10000);
+	}
 
 }

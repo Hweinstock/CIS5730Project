@@ -116,5 +116,56 @@ public class DataManager_getContributorName_Test {
 
 	}
 	
+	@Test(expected = IllegalStateException.class)
+	public void testNullClient() {
+
+		DataManager dm = new DataManager(null);
+		String name = dm.getContributorName("12345");
+		
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testNullOrgId() {
+
+		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+			
+			@Override
+			public String makeRequest(String resource, Map<String, Object> queryParams) {
+				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"new fund\",\"description\":\"this is the new fund\",\"target\":10000,\"org\":\"5678\",\"donations\":[],\"__v\":0}}";
+
+			}
+			
+		});
+		String name = dm.getContributorName(null);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testStatusError() {
+
+		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+
+			@Override
+			public String makeRequest(String resource, Map<String, Object> queryParams) {
+				return "{\"status\": \"error\"}";
+			}
+		});
+
+		String name = dm.getContributorName("54321");
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void testNonParseableResp() {
+
+		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+
+			@Override
+			public String makeRequest(String resource, Map<String, Object> queryParams) {
+				throw new IllegalArgumentException();
+			}
+		});
+
+		String name = dm.getContributorName("54321");
+	}
+	
 
 }
