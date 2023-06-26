@@ -8,21 +8,20 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-//GIT
+
 public class DataManager {
 
 	private final WebClient client;
-	// proctected so that we man manually test/inspect in tests.
+	// Protected so that we man manually test/inspect in tests.
 	protected Map<String, String> contributorNameCache = new HashMap<String, String>();
-
 	public DataManager(WebClient client) {
 		this.client = client;
 	}
 
 	public enum OrgCreationStatus {
-		CREATED,
-		SERVER_ERROR,
-		DUPLICATE,
+		CREATED, 
+		SERVER_ERROR, 
+		DUPLICATE, 
 		INVALID
 	}
 
@@ -62,11 +61,49 @@ public class DataManager {
 				return OrgCreationStatus.CREATED;
 			} else if(status.equals("failed")){
 				return OrgCreationStatus.SERVER_ERROR;
+			}
+			else {
+				throw new IllegalStateException(failedConnectionErrorMsg);
+			}
+		} 
+		catch (Exception e) {
+			return OrgCreationStatus.SERVER_ERROR;
+		}
+	}
+
+	public Organization updateOrg(String orgId, String orgName, String orgDesc, Credentials credentials) {
+		if(orgId == null || orgName == null || orgDesc == null || credentials == null || credentials.hasNullValue()) {
+			throw new IllegalArgumentException("Null credentials, changes, or orgId.");
+		}
+
+		if(client == null){
+			throw new IllegalStateException(nullWebClientErrorMsg);
+		}
+		
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("id", orgId);
+			map.put("login", credentials.login);
+			map.put("password", credentials.password);
+			map.put("name", orgName);
+			map.put("description", orgDesc);
+
+			String response = client.makeRequest("/updateOrg", map);
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+
+			if(status.equals("success")){
+				JSONObject data = (JSONObject)json.get("data");
+				Organization org = parseOrganizationFromJSON(data);
+				return org;
 			} else {
 				throw new IllegalStateException(failedConnectionErrorMsg);
 			}
+
+
 		} catch (Exception e) {
-			return OrgCreationStatus.SERVER_ERROR;
+			throw new IllegalStateException(failedConnectionErrorMsg);
 		}
 	}
 
@@ -98,6 +135,44 @@ public class DataManager {
 		}
 	}
 
+	public Organization parseOrganizationFromJSON(JSONObject data){
+		if(data == null){
+			throw new IllegalArgumentException("Cannot parse null data.");
+		}
+		String fundId = (String)data.get("_id");
+		String name = (String)data.get("name");
+		String description = (String)data.get("description");
+		Organization org = new Organization(fundId, name, description);
+
+		JSONArray funds = (JSONArray)data.get("funds");
+		Iterator it = funds.iterator();
+		while(it.hasNext()){
+			JSONObject fund = (JSONObject) it.next();
+			fundId = (String)fund.get("_id");
+			name = (String)fund.get("name");
+			description = (String)fund.get("description");
+			long target = (Long)fund.get("target");
+
+			Fund newFund = new Fund(fundId, name, description, target);
+
+			JSONArray donations = (JSONArray)fund.get("donations");
+			List<Donation> donationList = new LinkedList<>();
+			Iterator it2 = donations.iterator();
+			while(it2.hasNext()){
+				JSONObject donation = (JSONObject) it2.next();
+				String contributorId = (String)donation.get("contributor");
+				String contributorName = this.getContributorName(contributorId);
+				long amount = (Long)donation.get("amount");
+				String date = (String)donation.get("date");
+				donationList.add(new Donation(fundId, contributorName, amount, date));
+			}
+
+			newFund.setDonations(donationList);
+
+			org.addFund(newFund);
+		}
+		return org;
+	}
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.
 	 * This method uses the /findOrgByLoginAndPassword endpoint in the API
@@ -125,47 +200,18 @@ public class DataManager {
 
 			if (status.equals("success")) {
 				JSONObject data = (JSONObject)json.get("data");
-				String fundId = (String)data.get("_id");
-				String name = (String)data.get("name");
-				String description = (String)data.get("description");
-				Organization org = new Organization(fundId, name, description);
-
-				JSONArray funds = (JSONArray)data.get("funds");
-				Iterator it = funds.iterator();
-				while(it.hasNext()){
-					JSONObject fund = (JSONObject) it.next();
-					fundId = (String)fund.get("_id");
-					name = (String)fund.get("name");
-					description = (String)fund.get("description");
-					long target = (Long)fund.get("target");
-
-					Fund newFund = new Fund(fundId, name, description, target);
-
-					JSONArray donations = (JSONArray)fund.get("donations");
-					List<Donation> donationList = new LinkedList<>();
-					Iterator it2 = donations.iterator();
-					while(it2.hasNext()){
-						JSONObject donation = (JSONObject) it2.next();
-						String contributorId = (String)donation.get("contributor");
-						String contributorName = this.getContributorName(contributorId);
-						long amount = (Long)donation.get("amount");
-						String date = (String)donation.get("date");
-						donationList.add(new Donation(fundId, contributorName, amount, date));
-					}
-
-					newFund.setDonations(donationList);
-
-					org.addFund(newFund);
-
-				}
+				Organization org = this.parseOrganizationFromJSON(data);
 
 				return org;
-			} else if(status.equals("login failed")){
+			}
+			else if(status.equals("login failed")){
 				return null;
-			} else {
+			}
+			else {
 				throw new IllegalStateException(failedConnectionErrorMsg);
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 //			e.printStackTrace(); // assuming we don't have to print this since we're displaying the error message in UserInterface.main 
 			throw new IllegalStateException(failedConnectionErrorMsg);
 		}
@@ -209,13 +255,16 @@ public class DataManager {
 				return name;
 			} else if (status.equals("error")) {
 				throw new IllegalStateException(webClientResponseErrorMsg);
-			} else return null;
+			}
+			else return null;
 
-		} catch (IllegalStateException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new IllegalStateException(unableToParseRsp);
 		}
+		catch (IllegalStateException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(unableToParseRsp);
+		}	
 	}
 
 	/**
@@ -224,10 +273,11 @@ public class DataManager {
 	 */
 	public Fund createFund(String orgId, String name, String description, long target) {
 
-		if(orgId == null || name == null || description == null) {
+		if(orgId == null || name == null || description == null)
+		{
 			throw new IllegalArgumentException("One of orgId, name, and description are null!");
 		}
-
+		
 		if(client == null){
 			throw new IllegalStateException(nullWebClientErrorMsg);
 		}
@@ -360,4 +410,6 @@ public class DataManager {
 			throw new IllegalStateException(unableToParseRsp);
 		}
 	}
+
+
 }

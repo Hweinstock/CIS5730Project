@@ -1,0 +1,19 @@
+
+Phase 3 Writeup for Group 8:
+Group Members: Harry Weinstock, Ryan Trotter, Ankith Suhas Pinnamaneni
+
+1. Tasks we would like graded: 3.1, 3.2, 3.3, 3.4
+
+2. Changes made to the code:
+  3.1: Implement UI, logic, and backend for handling the creation of new objects. 
+  3.2: Created the method changePassword() that handles the password change when called from start(). 
+  3.3: Implement UI, logic, and backend for changing account information. Involved some refactoring, including the creation of Credentials objects to simplify working with logins and passwords. 
+
+3. Bugs Found: No bugs were found. 
+
+4. No changes were made to how the app is started
+
+5. Group Member's Contributions:
+  Harry: 3.1, 3.3
+  Ryan: 
+  Ankith: Mainly worked on 3.2 with implementing the 'change password' functionality apart from updating some tests. 

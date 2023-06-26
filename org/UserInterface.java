@@ -3,46 +3,53 @@ import java.util.*;
 
 // GIT
 public class UserInterface {
-
-
+	
+	
 	private DataManager dataManager;
 	private Organization org;
 	private static Scanner in = new Scanner(System.in);
 	private static Map<Integer, List<String>> aggregateContriMap = new HashMap<Integer, List<String>>();
 
 	private enum WelcomeOption {
-		LOGIN,
-		CREATE_ACCOUNT,
+		LOGIN, 
+		CREATE_ACCOUNT, 
 		EXIT
 	}
-
+	
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
 		this.org = org;
-	}
-
-	public void start() {
-
+	} 
+	
+	public void start(Credentials credentials) {
+				
 		while (true) {
 			System.out.println("\n\n");
+			System.out.println("-------------------");
 			if (org.getFunds().size() > 0) {
 				System.out.println("There are " + org.getFunds().size() + " funds in this organization:");
-
+			
 				int count = 1;
 				for (Fund f : org.getFunds()) {
-
+					
 					System.out.println(count + ": " + f.getName());
-
+					
 					count++;
 				}
 				System.out.println("Enter the fund number to see more information.");
 				System.out.println("Enter " + count + " to see information for contributions to all funds.");
 			}
+
 			System.out.println("Enter 0 to create a new fund");
 			System.out.println("Enter 'donate' to make a donation on behalf of a contributor");
 			System.out.println("Enter 'logout' to log out of the app");
+			System.out.println("Enter 'account' to change Organization account details");
+			System.out.println("Enter 'password' to change the current password");
+			System.out.println("-------------------");
+
 			int numFunds = org.getFunds().size();
 			int option;
+
 			String userInput = in.nextLine().trim();
 
 			if (userInput.equals("logout")) {
@@ -52,6 +59,22 @@ public class UserInterface {
 			} else if (userInput.equals("donate")) {
 				createDonation();
 				continue;
+			} else if (userInput.equals("account")) {
+				System.out.println("You chose to change account info.");
+				Organization newOrg = changeAccountInfo(org.getId(), org.getName(), org.getDescription(), credentials);
+				if(newOrg != null){
+					org = newOrg;
+				}
+				start(credentials);
+				return;
+			} else if (userInput.equals("password")) {
+				System.out.println("You chose to change the password.");
+				Organization passwordUpdatedOrg = changePassword(org.getId(), credentials);
+				if(passwordUpdatedOrg != null) {
+					org = passwordUpdatedOrg;
+				}
+				start(credentials); // credentials contains the updated password
+				return;
 			}
 
 			while(true) {
@@ -63,31 +86,178 @@ public class UserInterface {
 					System.out.println("There are only " + numFunds + " funds in the organization. \n "
 							+ "So please enter a fund number between 1 and " + (numFunds+1) + " to see more information about the fund or all funds.");
 					userInput = in.nextLine().trim();
-				} catch(Exception e) {
-//					in.next(); // to advance to the next token
+				}
+				catch(Exception e) {
 					userInput = in.nextLine().trim();
 					System.out.println("Please enter a valid integer between 0 and " + (numFunds+1));
 				}
 			}
 
 			if (option == 0) {
-				createFund();
-			} else if (option == numFunds+1) {
+				createFund(); 
+			}
+			else if (option == numFunds+1) {
 				displayAllFunds();
-			} else {
+			}
+			else {
 				displayFund(option);
 			}
+		}			
+			
+	}
+
+	public String promptForPassword(String dispMsg) {
+		try {
+			while(true) {
+				System.out.println(dispMsg);
+				String passwordEntered = in.nextLine().trim();
+				if(!passwordEntered.equals("")) {
+					return passwordEntered;
+				}
+				System.out.println("The password field cannot be left blank. Please enter a value.\n");
+			}
+		} catch(Exception e) {
+			System.out.println("Please enter a valid value for the password.");
+			return null;
 		}
 
 	}
 
+	public Organization changeAccountInfo(String orgId, String originalName, String originalDescription, Credentials credentials) {
+
+		System.out.println("-------------------");
+		System.out.println("Your current account information:");
+		System.out.println("\t login: " + credentials.login);
+		System.out.println("\t name: " + originalName);
+		System.out.println("\t description: " + originalDescription);
+		System.out.println("-------------------");
+
+		String passwordEntered;
+		Organization newOrg;
+		while(true) {
+			passwordEntered = promptForPassword("Please re-enter your password: ");
+			if(passwordEntered != null){
+				break;
+			}
+		}
+
+
+		if(!credentials.isSamePassword(passwordEntered)){
+			System.out.println("Password entered incorrectly, returning to main menu.");
+			return null;
+		} else {
+			System.out.println("Successfully Authenticated:");
+
+			System.out.println("Please enter the new name of the organization or leave blank to keep current name.");
+			String newName = in.nextLine().trim();
+
+			System.out.println("Please enter the new description of the organization or leave blank to keep current description.");
+			String newDescription = in.nextLine().trim();
+
+			if(newName.equals("")){
+				newName = originalName;
+			}
+
+			if(newDescription.equals("")){
+				newDescription = originalDescription;
+			}
+
+			if(newName == originalName && newDescription == originalDescription){
+				System.out.println("No changes made, returning back to main menu.");
+				return null;
+			}
+
+			try {
+				newOrg = dataManager.updateOrg(orgId, newName, newDescription, credentials);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Error: Unable to update org information. Returning to main menu");
+				return null;
+			}
+
+			return newOrg;
+
+		}
+
+	}
+
+	public Organization changePassword(String orgId, Credentials creds) {
+
+		String currPasswordEntered;
+		Organization updatedOrg;
+
+		while(true) {
+			currPasswordEntered = promptForPassword("Please enter your current password for authentication: ");
+			if(currPasswordEntered != null) {
+				break;
+			}
+		}
+
+		if(currPasswordEntered.equals(creds.password)) {
+			String newPasswordEnteredOnce;
+			String newPasswordEnteredTwice;
+
+			newPasswordEnteredOnce = promptForPassword("Please enter your new password: ");
+			if(newPasswordEnteredOnce == null) {
+				return null; // if prompt throws exception
+			}
+
+			newPasswordEnteredTwice = promptForPassword("Please re-confirm your new password: ");
+			if(newPasswordEnteredTwice == null) {
+				return null; // if prompt throws exception
+			}
+			if(newPasswordEnteredOnce.equals(newPasswordEnteredTwice)) {
+				creds.setPassword(newPasswordEnteredOnce);
+				try {
+					updatedOrg = dataManager.updateOrg(orgId, org.getName(), org.getDescription(), creds);
+					System.out.println("Password updated successfully!");
+					return updatedOrg;
+				}
+				catch(Exception e) {
+					System.out.println("Error: Unable to update the password due to a server error. Please re-attempt to change the password");
+					creds.setPassword(currPasswordEntered); // reverting back to the original password
+					changePassword(orgId, creds);
+				}
+			}
+			else {
+				System.out.println("The two passwords don't match. Returning to the main menu...");
+				return null;
+			}
+		}
+		else {
+			System.out.println("Incorrect password entered. Returning to the main menu...");
+			return null;
+		}
+		return null;
+	}
+
 	public void createFund() {
+		
+		String name;
+		String description;
 
-		System.out.print("Enter the fund name: ");
-		String name = in.nextLine().trim();
+		while(true) {
+			System.out.print("Enter the fund name: ");
+			name = in.nextLine().trim();
 
-		System.out.print("Enter the fund description: ");
-		String description = in.nextLine().trim();
+			if(name != null && !name.equals("")) {
+				break;
+			}
+			System.out.println("The fund name should not be null or empty.\n");
+
+		}
+
+		while(true) {
+			System.out.print("Enter the fund description: ");
+			description = in.nextLine().trim();
+
+			if(description != null && !description.equals("")) {
+				break;
+			}
+			System.out.println("The fund description should not be null or empty.\n");
+
+		}
 
 		long target;
 		while(true) {
@@ -95,33 +265,35 @@ public class UserInterface {
 				System.out.print("Enter the fund target: ");
 				target = in.nextInt();
 				in.nextLine();
-				if(target>0.0) { // not including 0 as a valid fund target.
+				if(target>0.0) { // not including 0 as a valid fund target. 
 					break;
 				}
 				System.out.println("Fund target should be positive (greater than 0). Please enter a positive number.");
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				in.next();
 				System.out.println("Please enter a valid positive (greater than 0) number.");
 			}
-
+			
 		}
-
+		
 		try {
 			Fund fund = dataManager.createFund(org.getId(), name, description, target);
 			org.getFunds().add(fund);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			System.out.println(e.getMessage());
 			createFund();
 		}
 
-
+		
 	}
-
-
+	
+	
 	public void displayFund(int fundNumber) {
-
+		
 		Fund fund = org.getFunds().get(fundNumber - 1);
-
+		
 		System.out.println("\n\n");
 		System.out.println("Here is information about this fund:");
 		System.out.println("Name: " + fund.getName());
@@ -137,7 +309,8 @@ public class UserInterface {
 				List<String> valueFromMap = aggregateContriMap.get(fundNumber);
 				String displayStr = valueFromMap.get(0);
 				System.out.println(displayStr);
-			} else {
+			}
+			else {
 				displayContributions(donations, fundNumber);
 				List<String> valueFromMap = aggregateContriMap.get(fundNumber);
 				String displayStr = valueFromMap.get(0);
@@ -151,12 +324,13 @@ public class UserInterface {
 		double percent = ((double) totalAmount / fund.getTarget()) * 100;
 		percent = (double) Math.round(percent * 100) / 100;
 		System.out.println("Total donation amount: $" + totalAmount + " (" + percent + "% of target)");
-
-
+	
+		
 		System.out.println("Press the Enter key to go back to the listing of funds");
 		in.nextLine();
-
-
+		
+		
+		
 	}
 
 	public void displayAllFunds() {
@@ -180,7 +354,7 @@ public class UserInterface {
 		System.out.println("Press the Enter key to go back to the listing of funds");
 		in.nextLine();
 	}
-
+	
 	public static WelcomeOption welcomeUser() {
 		System.out.println("-------------------");
 		System.out.println("Welcome to our app!");
@@ -191,27 +365,26 @@ public class UserInterface {
 		while(true) {
 			try {
 				userInput = in.nextLine().trim();
-				optionChosen = Integer.parseInt(userInput);
+				optionChosen = Integer.parseInt(userInput); 
 				return WelcomeOption.values()[optionChosen];
-			} catch(Exception e) {
+			}
+			catch(Exception e) {
 				System.out.println("Please enter a valid option: 0, 1, or 2.");
 			}
 		}
 	}
 
-
-	public static List<String> promptForLogin(){
-		List<String> loginCreds = new ArrayList<String>();
+	
+	public static Credentials promptForLogin(){
 		try {
 			System.out.print("Please enter the username: ");
-			String username = in.nextLine().trim();
+			String login = in.nextLine().trim();
 
 			System.out.print("Please enter the password: ");
 			String password = in.nextLine().trim();
-			loginCreds.add(username);
-			loginCreds.add(password);
-			return loginCreds;
-		} catch(Exception e) {
+			return new Credentials(login, password);
+		}
+		catch(Exception e) {
 			System.out.println("Please enter a valid value for the username and password.");
 		}
 		return null;
@@ -229,7 +402,8 @@ public class UserInterface {
 			org.add(name);
 			org.add(description);
 			return org;
-		} catch(Exception e) {
+		}
+		catch(Exception e) {
 			System.out.println("Please enter a valid value for the new organization name and description.");
 		}
 		return null;
@@ -254,7 +428,8 @@ public class UserInterface {
 				Integer numContributions = contrTimes.get(donorName);
 				contrTimes.put(donorName, numContributions+1);
 
-			} else {
+			}
+			else {
 				contrAmounts.put(donorName, donorAmount);
 				contrTimes.put(donorName, 1);
 			}
@@ -280,20 +455,20 @@ public class UserInterface {
 
 	}
 
-	private static List<String> createAccount(DataManager ds) {
+	private static Credentials createAccount(DataManager ds) {
 		System.out.println("-------------------");
 		System.out.println("\n Creating new organization:");
 		System.out.println("-------------------");
 		while(true) {
 			try {
 				List<String> orgInfo = promptForNewOrg();
-				List<String>loginDetails = promptForLogin();
-				DataManager.OrgCreationStatus status = ds.createOrg(loginDetails.get(0), loginDetails.get(1), orgInfo.get(0), orgInfo.get(1));
-
+				Credentials credentials = promptForLogin();
+				DataManager.OrgCreationStatus status = ds.createOrg(credentials.login, credentials.password, orgInfo.get(0), orgInfo.get(1));
+				
 				switch(status){
 					case CREATED:
 						System.out.println("Your account has been created, you will now be logged in!");
-						return loginDetails;
+						return credentials;
 					case DUPLICATE:
 						System.out.println("The username you entered already exists, please try a different one.");
 						break;
@@ -394,17 +569,17 @@ public class UserInterface {
 
 	public static void main(String[] args) {
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
-
+		
 		WelcomeOption optionSelected = welcomeUser();
-		List<String> loginDetails;
-
+		Credentials credentials;
+	
 		switch ( optionSelected ) {
 			case LOGIN:
 				System.out.println("Login selected");
-				loginDetails = promptForLogin();
+				credentials = promptForLogin();
 				break;
 			case CREATE_ACCOUNT:
-				loginDetails = createAccount(ds);
+				credentials = createAccount(ds);
 				break;
 			case EXIT:
 				System.out.println("Exit selected");
@@ -414,26 +589,24 @@ public class UserInterface {
 				return;
 		}
 
-		String loginUser = loginDetails.get(0);
-		String passwordUser = loginDetails.get(1);
-
 		try {
-			Organization org = ds.attemptLogin(loginUser, passwordUser);
-
+			Organization org = ds.attemptLogin(credentials.login, credentials.password);
+			
 			if (org == null) {
 				System.out.println("Login failed. Incorrect username or password.");
-			} else {
+			}
+			else {
 
 				UserInterface ui = new UserInterface(ds, org);
-
-				ui.start();
-
+			
+				ui.start(credentials);
+			
 			}
 		} catch (Exception e) {
 			//e.printStackTrace();
 			System.out.println("Error in communicating with server.");
 		}
-
+		
 	}
 
 }

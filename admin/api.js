@@ -8,6 +8,29 @@ const {Donation} = require('./DbConfig.js');
 
 
 /*
+Handle updating an org
+*/
+app.use('/updateOrg', (req, res) => {
+
+	var filter = {"_id" : req.query.id };
+
+	var update = { "login" : req.query.login, "password" : req.query.password, "name" : req.query.name, "description" : req.query.description };
+	
+	var action = { "$set" : update };
+
+	Organization.findOneAndUpdate( filter, action, { new : true }, (err, result) => {
+		if (err) {
+		    res.json({"status": "error", "error" : err });
+		}
+		else {
+		    //console.log(result);
+		    res.json({"data" : result, "status" : 'success'});
+		}
+	    });
+	
+    });
+
+/*
 Handle the creation of new organizations. 
 */
 app.use('/createOrg', (req, res) => {

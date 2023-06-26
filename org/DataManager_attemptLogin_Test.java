@@ -1,7 +1,6 @@
 import java.util.Map;
 import static org.junit.Assert.*;
 import java.util.*;
-
 import org.json.simple.JSONObject;
 import org.junit.Test;
 
@@ -29,34 +28,6 @@ public class DataManager_attemptLogin_Test {
 		}
 	}
 
-	public JSONObject getExampleDonation(){
-		JSONObject donation = new JSONObject();
-		donation.put("contributor", "testContributorId");
-		donation.put("amount", Long.valueOf(100));
-		donation.put("date", "11-06-2010");
-		return donation;
-	}
-	public List<JSONObject> getExampleDonations(){
-		List<JSONObject> donations = new LinkedList<JSONObject>();
-		JSONObject donation = getExampleDonation();
-		donations.add(donation);
-		return donations;
-	}
-
-	public List<JSONObject> getExampleFunds(){
-		List<JSONObject> funds = new LinkedList<JSONObject>();
-		JSONObject fund = new JSONObject();
-		fund.put("_id", "testFundId");
-		fund.put("name", "testFundName");
-		fund.put("description", "testFundDescription");
-		fund.put("target", Long.valueOf(1000));	
-
-		List<JSONObject> donations = getExampleDonations();
-		fund.put("donations", donations);
-		funds.add(fund);
-		return funds;
-	}
-
 	@Test 
 	public void testSuccessfullLogin() {
 		TestDataManager dm = new TestDataManager(new WebClient("localhost", 3001) {
@@ -72,7 +43,7 @@ public class DataManager_attemptLogin_Test {
 				data.put("description", "testDescription");
 				
 				// Define list of funds
-				List<JSONObject> funds = getExampleFunds();
+				List<JSONObject> funds = TestUtilities.getExampleFunds();
 				data.put("funds", funds);
 				response.put("data", data);
 				
@@ -89,7 +60,7 @@ public class DataManager_attemptLogin_Test {
 		assertEquals("testDescription", org.getDescription());
 
 		List<Fund> testFunds = org.getFunds();
-		List<JSONObject> expectedFunds = getExampleFunds();
+		List<JSONObject> expectedFunds = TestUtilities.getExampleFunds();
 		assertEquals(expectedFunds.size(), testFunds.size());
 		
 		JSONObject currentExpectedFund;
@@ -115,7 +86,6 @@ public class DataManager_attemptLogin_Test {
 			assertEquals(currentExpectedFund.get("target"), currentActualFund.getTarget());
 
 			// Compare the donations associated with each fund. 
-			//System.out.println(currentExpectedFund.get("donations").toString());
 			currentActualDonations = currentActualFund.getDonations();
 			currentExpectedDonations = (List<JSONObject>)currentExpectedFund.get("donations"); 
 			
