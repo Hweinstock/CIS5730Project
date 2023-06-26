@@ -171,7 +171,7 @@ public class UserInterface {
 				newOrg = dataManager.updateOrg(orgId, newName, newDescription, credentials);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+//				e.printStackTrace();
 				System.out.println("Error: Unable to update org information. Returning to main menu");
 				return null;
 			}
@@ -281,7 +281,7 @@ public class UserInterface {
 		}
 		
 		long target;
-		while(true) {
+		while(true) { 
 			try {
 				System.out.print("Enter the fund target: ");
 				target = in.nextInt();
