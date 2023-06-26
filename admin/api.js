@@ -219,6 +219,44 @@ app.use('/findContributorNameById', (req, res) => {
 	    });
     });
 
+app.use('/verifyContributorByName', (req, res) => {
+
+	var query = { "name" : req.query.name };
+
+	Contributor.findOne(query, (err, result) => {
+		if (err) {
+			res.json({'status': 'error', 'data' : err});
+		}
+		else if (!result) {
+			res.json({'status': 'not found'});
+		}
+		else {
+			res.json({'status': 'success'});
+			// res.json({'status': 'success', 'data': result.name});
+		}
+
+	});
+});
+
+app.use('/contributorIdByName', (req, res) => {
+
+	var query = { "name" : req.query.name };
+
+	Contributor.findOne(query, (err, result) => {
+		if (err) {
+			res.json({'status': 'error', 'data' : err});
+		}
+		else if (!result) {
+			res.json({'status': 'not found'});
+		}
+		else {
+			res.json({'status': 'success', 'id': result.id});
+			// res.json({'status': 'success', 'data': result.name});
+		}
+
+	});
+});
+
 
 /*
 Make a new donation to the fund with ID specified as req.query.fund
